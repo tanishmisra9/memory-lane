@@ -19,7 +19,7 @@ async function guards(page, name) {
 try {
   for (const [name, width, height] of [['desktop', 1280, 800], ['mobile', 390, 844]]) {
     const ctx = await browser.newContext({ viewport: { width, height }, reducedMotion }), page = await ctx.newPage();
-    const errors = []; page.on('pageerror', e => errors.push(e.message)); page.on('console', m => m.type() === 'error' && !/fonts\.g|favicon|Failed to load resource/.test(m.text()) && errors.push(m.text()));
+    const errors = []; page.on('pageerror', e => errors.push(e.message)); page.on('console', m => m.type() === 'error' && !/fonts\.(googleapis|gstatic)|favicon/.test(m.location().url) && !(/status of 404/.test(m.text()) && /\/api\/sessions\//.test(m.location().url)) /* the deleted session's 404 is expected */ && errors.push(`${m.text()} ${m.location().url}`));
 
     // 1. Landing: the one action is on the first screen.
     await page.goto(base + '/');
@@ -73,7 +73,8 @@ try {
     assert.equal(await page.locator('[aria-current=step]').innerText(), 'A1'); const second = await title();
     // Smiled opens a note; save it and move on.
     await page.keyboard.press('1'); await page.locator('#note').waitFor(); await page.fill('#note', 'Danced to this at their wedding');
-    await page.getByRole('button', { name: 'Save and continue' }).click(); await page.waitForFunction(t => document.querySelector('h1')?.textContent !== t, second);
+    await page.getByRole('button', { name: 'Save and continue' }).click(); // blur and click both flush: must not conflict
+    await page.waitForFunction(t => document.querySelector('h1')?.textContent !== t, second);
     step(`${name} reactions and notes`);
 
     // Walk to the end: jump to the last item, react, finish.

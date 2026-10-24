@@ -20,7 +20,9 @@ export function Player() {
   const [session, setSession] = useState<SessionView | null>(seeded?.id === id ? seeded : null);
   const [gone, setGone] = useState(false), [loadError, setLoadError] = useState('');
   const [index, setIndex] = useState(0), [busy, setBusy] = useState(false), [why, setWhy] = useState(false), [finished, setFinished] = useState(false), [notice, setNotice] = useState('');
-  const dir = useRef(1);
+  const dir = useRef(1), chain = useRef<Promise<unknown>>(Promise.resolve());
+  // Every change to the session is sent one after another, so two quick taps can never collide on the server.
+  const serial = useCallback(<T,>(task: () => Promise<T>): Promise<T> => { const run = chain.current.then(task, task); chain.current = run.catch(() => {}); return run; }, []);
 
   useEffect(() => { // A reload or a shared link has no session in memory; fetch it.
     if (session) return;
@@ -40,17 +42,17 @@ export function Player() {
     if (!session || !item || busy) return;
     setBusy(true); setNotice('');
     try {
-      const updated = await reactApi(session.id, item.id, reaction);
+      const updated = await serial(() => reactApi(session.id, item.id, reaction));
       setSession(updated);
       if (reaction === 'upset') setNotice('Swapped for a different song.');
     } catch (e) { setNotice(e instanceof Error ? e.message : 'That did not save. Try again.'); }
     finally { setBusy(false); }
-  }, [session, item, busy]);
+  }, [session, item, busy, serial]);
 
   const doNote = useCallback(async (text: string) => {
     if (!session || !item) return;
-    try { setSession(await saveNote(session.id, item.id, text)); } catch (e) { setNotice(e instanceof Error ? e.message : 'The note did not save.'); }
-  }, [session, item]);
+    try { setSession(await serial(() => saveNote(session.id, item.id, text))); } catch (e) { setNotice(e instanceof Error ? e.message : 'The note did not save.'); }
+  }, [session, item, serial]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

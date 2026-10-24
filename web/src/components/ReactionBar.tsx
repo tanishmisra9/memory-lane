@@ -8,12 +8,17 @@ const OPTIONS: { key: Reaction; label: string; key2: string }[] = [{ key: 'smile
 // How did it land? Smiled and Okay open a one-line note; Upset swaps the song right away.
 export function ReactionBar({ item, busy, attention, onReact, onNote, onNext, isLast }: { item: Item; busy: boolean; attention: boolean; onReact: (r: Reaction) => void; onNote: (text: string) => Promise<void>; onNext: () => void; isLast: boolean }) {
   const [draft, setDraft] = useState(item.note ?? '');
-  const first = useRef<HTMLButtonElement>(null);
-  useEffect(() => setDraft(item.note ?? ''), [item.id, item.note]);
+  const first = useRef<HTMLButtonElement>(null), sent = useRef(item.note ?? ''), pending = useRef<Promise<void>>(Promise.resolve());
+  useEffect(() => { setDraft(item.note ?? ''); sent.current = item.note ?? ''; }, [item.id, item.note]);
   useEffect(() => { if (attention) first.current?.focus(); }, [attention, item.id]);
   const showNote = item.reaction === 'smiled' || item.reaction === 'neutral';
   const prompt = item.kind === 'song' && item.ages && item.ages[0] === item.ages[1] ? `What does this bring up? Where were they in ${item.year}?` : 'What does this bring up?';
-  const flush = async () => { if (draft.trim() !== (item.note ?? '')) await onNote(draft); };
+  // Blur and the Save button both flush; send each distinct text once, and let the second wait for the first.
+  const flush = async () => {
+    const text = draft.trim();
+    if (text !== sent.current) { sent.current = text; pending.current = onNote(text); }
+    await pending.current;
+  };
   return (
     <div>
       <p className="label" id="how">How did it land?</p>
