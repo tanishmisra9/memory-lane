@@ -15,8 +15,9 @@ colors:
   night-surface: "#221b16"
   night-ink: "#f3ede2"
   night-muted: "#b3a898"
-  night-shadow: "#000000"
+  night-shadow: "#5a4a3a"
   error-soft: "#ffb4a8"
+  scrim-warm: "rgb(48 22 12 / .6)"
   print-white: "#ffffff"
   print-black: "#000000"
 typography:
@@ -129,7 +130,7 @@ A committed paper-and-ink palette with three printing stocks and one action colo
 
 ### Neutral
 - **Paper** (#fffdd0) is the page; **Surface** (#fffef0) is the card and field; **Ink** (#14110e) is text, borders and the shadow; **Muted Ink** (#5d544a) is secondary text (6.9:1 on Surface).
-- Night theme: **Night** (#17120f) page, **Night Surface** (#221b16), **Night Ink** (#f3ede2), **Night Muted** (#b3a898), **Night Shadow** (#000000).
+- Night theme: **Night** (#17120f) page, **Night Surface** (#221b16), **Night Ink** (#f3ede2), **Night Muted** (#b3a898), **Night Shadow** (#5a4a3a, a warm brown, because black vanishes on espresso).
 - **Error Soft** (#ffb4a8) is error text on night; errors are Stock Red on paper.
 - **Print White** (#ffffff) and **Print Black** (#000000) appear only in the print stylesheet.
 
@@ -162,7 +163,7 @@ A 1180px column with 20px gutters. The player is two columns above about 700px (
 
 ## Elevation & Depth
 
-Hard offset shadows with no blur: 4px at rest, 6px on hover (the card lifts 2px toward the cursor), 1px when pressed. The shadow color is Ink by day and Night Shadow by night. The drawer is the only overlay: a flat card with a dimmed scrim. A faint paper-grain texture sits over the page (opacity 0.04 by day, 0.07 by night).
+Hard offset shadows with no blur: 4px at rest, 6px on hover (the card lifts 2px toward the cursor), 1px when pressed. The shadow color is Ink by day and Night Shadow by night. The drawer is the only overlay: a flat card with a dimmed scrim. A faint paper grain is part of the page background, behind every card, field and cover, so content stays clean.
 
 ## Shapes
 
