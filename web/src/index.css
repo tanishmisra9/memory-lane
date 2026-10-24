@@ -33,7 +33,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-i
 :focus-visible { outline: 3px solid var(--color-action); outline-offset: 3px; }
 :root[data-theme='dark'] :focus-visible { outline-color: var(--color-action); }
 button, input, textarea, select { font: inherit; color: inherit; }
-h1, h2, h3 { font-family: var(--font-display); text-transform: uppercase; margin: 0; text-wrap: balance; }
+h1, h2, h3 { font-family: var(--font-display); text-transform: uppercase; margin: 0; text-wrap: balance; line-height: 1.02; }
 p { margin: 0; }
 
 .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }

@@ -49,7 +49,7 @@ try {
     const id = page.url().split('/').pop(); step(`${name} wizard to player`);
 
     // 4. Player: audio plays, keyboard works, reactions behave.
-    await page.getByRole('heading', { level: 1 }).first().waitFor();
+    await page.locator('[aria-current=step]').waitFor(); // the player itself, not the tuning screen it replaces
     await guards(page, `${name} player`); if (shots) await page.screenshot({ path: `${shots}/${name}-player.png` });
     const title = () => page.getByRole('heading', { level: 1 }).first().textContent();
     const first = await title();
@@ -57,7 +57,7 @@ try {
     await page.waitForFunction(() => document.querySelector('[role=slider]')?.getAttribute('aria-valuenow') !== '0' || false, null, { timeout: 8000 }).catch(() => {});
     const playing = await page.getByRole('button', { name: 'Pause' }).count(), blocked = await page.getByText(/would not load|blocked/).count();
     assert.ok(playing === 1 || blocked === 1, `${name}: play either starts or says why it could not`);
-    if (playing) { await page.waitForTimeout(1500); assert.ok(Number(await page.locator('[role=slider]').getAttribute('aria-valuenow')) > 0, `${name}: the progress moves while it plays`); }
+    console.log('  audio:', playing ? 'playing' : 'blocked'); if (playing) { await page.waitForTimeout(1500); assert.ok(Number(await page.locator('[role=slider]').getAttribute('aria-valuenow')) > 0, `${name}: the progress moves while it plays`); }
     await page.keyboard.press('ArrowRight'); await page.waitForFunction(t => document.querySelector('h1')?.textContent !== t, first);
     assert.equal(await page.locator('[aria-current=step]').innerText(), 'A2'); await page.keyboard.press('ArrowLeft');
     await page.waitForFunction(t => document.querySelector('h1')?.textContent === t, first);
