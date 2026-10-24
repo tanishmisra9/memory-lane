@@ -1,8 +1,8 @@
 // Deterministic core: nothing here calls a model or a network. Qloo finds candidates; these rules decide what is safe to play.
-export type Artist = { id: string; name: string; start?: number; end?: number; obscurity?: number; complexity?: number; themes: string[]; songs: string[]; genres: string[]; image?: string; via?: string; known?: { title: string; year: number; previewUrl: string }[] };
+export type Artist = { id: string; name: string; start?: number; end?: number; obscurity?: number; complexity?: number; themes: string[]; songs: string[]; genres: string[]; image?: string; via?: string; known?: { title: string; year: number; previewUrl: string; art?: string }[] };
 export type Media = { id: string; title: string; year: number; kind: 'film' | 'show'; image?: string; popularity?: number };
 export type Reaction = 'smiled' | 'neutral' | 'upset';
-export type Item = { id: string; kind: 'song' | 'film' | 'show'; code: string; title: string; by?: string; artistId?: string; genres: string[]; year: number; age: number; ages?: [number, number]; active?: string; image?: string; previewUrl?: string | null; via?: string; found: boolean; notes: string[]; reaction?: Reaction };
+export type Item = { id: string; kind: 'song' | 'film' | 'show'; code: string; title: string; by?: string; artistId?: string; genres: string[]; year: number; age: number; ages?: [number, number]; active?: string; image?: string; art?: string; themes: string[]; obscurity?: number; note?: string; previewUrl?: string | null; via?: string; found: boolean; notes: string[]; reaction?: Reaction };
 export type Profile = { born: number; name?: string; anchors: { id: string; name: string }[]; weights: Record<string, number>; banned: string[] };
 export type Pool = { artists: Artist[]; media: Media[] };
 
@@ -46,6 +46,15 @@ export function validate(input: unknown): { born: number; name?: string; anchors
 
 // The headline promises "when they were 19", so artists active around ages 15 to 25 outrank ones that only touch the edges of the window.
 const core = (artist: Artist, born: number) => artist.known?.length ? 1.15 : artist.start !== undefined && artist.start <= born + 25 && (artist.end ?? Infinity) >= born + 15 ? 1.15 : 1;
+export const MAX_NOTE = 280;
+// A note is one line the caregiver types about a song. Empty clears it; anything else is plain text, trimmed, at most 280 characters.
+export function validateNote(value: unknown): string {
+  if (typeof value !== 'string') throw new Error('A note is text.');
+  const note = value.trim();
+  if (note.length > MAX_NOTE) throw new Error(`Keep a note under ${MAX_NOTE + 1} characters.`);
+  return note;
+}
+
 const weight = (profile: Profile, artist: Artist) => artist.genres.length ? Math.max(...artist.genres.map(g => profile.weights[g] ?? 1)) : 1;
 // Qloo order is the base ranking; learned genre weights bend it.
 const ranked = (pool: Artist[], profile: Profile) => pool.map((artist, order) => ({ artist, score: weight(profile, artist) * core(artist, profile.born) * (1 - order / (pool.length + 10)) }))
@@ -59,14 +68,14 @@ function songItem(artist: Artist, profile: Profile, code: string, used: Set<stri
   // Artists the caregiver named come with songs dated by iTunes, so their year and age are exact.
   const nearest = [...(artist.known ?? [])].sort((a, b) => Math.abs(a.year - profile.born - 19) - Math.abs(b.year - profile.born - 19));
   const dated = nearest.find(song => !used.has(key(song.title))) ?? nearest[0];
-  if (dated) return { id: `${artist.id}:${dated.title}`, kind: 'song', code, title: dated.title, by: artist.name, artistId: artist.id, genres: artist.genres, year: dated.year, age: dated.year - profile.born, ages: [dated.year - profile.born, dated.year - profile.born], image: artist.image, previewUrl: dated.previewUrl, found: false, notes: [`released ${dated.year}`] };
-  const title = artist.songs.find(song => !used.has(key(song))) ?? artist.songs[0];
+  if (dated) return { id: `${artist.id}:${dated.title}`, kind: 'song', code, title: dated.title, by: artist.name, artistId: artist.id, genres: artist.genres, year: dated.year, age: dated.year - profile.born, ages: [dated.year - profile.born, dated.year - profile.born], image: artist.image, art: dated.art, themes: artist.themes, obscurity: artist.obscurity, previewUrl: dated.previewUrl, found: false, notes: [`released ${dated.year}`] };
+  const title = artist.songs.find(song => !used.has(key(song))) ?? artist.songs[0] ?? 'Unknown song';
   // Qloo gives the artist's active years, not each song's release year, so show the ages they were active within the window.
   const from = Math.max(artist.start ?? 0, profile.born + 10), to = Math.min(artist.end ?? Infinity, profile.born + 30);
-  return { id: `${artist.id}:${title}`, kind: 'song', code, title, by: artist.name, artistId: artist.id, genres: artist.genres, year: from, age: from - profile.born, ages: [from - profile.born, to - profile.born], active: artist.start === undefined ? undefined : artist.end ? `${artist.start} to ${artist.end}` : `since ${artist.start}`, image: artist.image, via: artist.via, found: !profile.anchors.some(a => a.id === artist.id),
+  return { id: `${artist.id}:${title}`, kind: 'song', code, title, by: artist.name, artistId: artist.id, genres: artist.genres, year: from, age: from - profile.born, ages: [from - profile.born, to - profile.born], active: artist.start === undefined ? undefined : artist.end ? `${artist.start} to ${artist.end}` : `since ${artist.start}`, image: artist.image, themes: artist.themes, obscurity: artist.obscurity, via: artist.via, found: !profile.anchors.some(a => a.id === artist.id),
     notes: [`active ${artist.start}${artist.end ? `-${artist.end}` : ' on'}`, ...safety(artist).notes] };
 }
-const mediaItem = (media: Media, profile: Profile, code: string): Item => ({ id: media.id, kind: media.kind, code, title: media.title, genres: [], year: media.year, age: media.year - profile.born, image: media.image, found: true, notes: [`released ${media.year}`] });
+const mediaItem = (media: Media, profile: Profile, code: string): Item => ({ id: media.id, kind: media.kind, code, title: media.title, genres: [], themes: [], year: media.year, age: media.year - profile.born, image: media.image, found: true, notes: [`released ${media.year}`] });
 
 // Songs the artist is known for, other than the ones already picked, in Qloo's order.
 export const alternates = (pool: Pool, item: Item): string[] => pool.artists.find(a => a.id === item.artistId)?.songs.filter(song => song !== item.title) ?? [];
@@ -113,7 +122,7 @@ export function refill(plan: Item[], pool: Pool, profile: Profile): Item[] {
   return plan.map(item => {
     if (keep(item)) return item;
     const artist = spare.shift();
-    if (!artist) return { ...item, reaction: 'upset' as const, title: 'No further song fits', by: undefined, artistId: undefined, previewUrl: null, image: undefined, genres: [], notes: ['no safe in-era artist left'] };
+    if (!artist) return { ...item, reaction: 'upset' as const, title: 'No further song fits', by: undefined, artistId: undefined, previewUrl: null, image: undefined, art: undefined, themes: [], genres: [], notes: ['no safe in-era artist left'] };
     const next = songItem(artist, profile, item.code, used); used.add(key(next.title)); names.push(artist.name); return next;
   });
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { memoryCache, previewFor, resolveAnchor, runAgent, toArtist, type Cache } from '../src/qloo';
+import { bigArt, memoryCache, previewFor, resolveAnchor, runAgent, toArtist, type Cache } from '../src/qloo';
 
 const fresh = (): Cache => { const m = new Map<string, unknown>(); return { async get(k) { return m.get(k) ?? null; }, async set(k, v) { m.set(k, v); } }; };
 const ent = (id: string, name: string, p: Record<string, unknown> = {}) => ({ entity_id: id, name, properties: { start_year: 1962, obscurity_scale: ['1'], lyrical_themes: ['Love'], notable_songs: [`${name} Song`], primary_genres: ['Pop'], ...p } });
@@ -56,8 +56,8 @@ test('preview requires the artist name to match and caches misses', async () => 
   let calls = 0;
   const cache = fresh();
   await withFetch(() => { calls++; return Response.json({ results: [{ previewUrl: 'wrong', artistName: 'Someone Else' }, { previewUrl: 'right', artistName: 'Nana Mouskouri' }] }); }, async () => {
-    assert.equal(await previewFor('Song', 'Nana Mouskouri', cache), 'right');
-    assert.equal(await previewFor('Song', 'Nana Mouskouri', cache), 'right'); assert.equal(calls, 1);
+    assert.deepEqual(await previewFor('Song', 'Nana Mouskouri', cache), { url: 'right', art: undefined });
+    assert.deepEqual(await previewFor('Song', 'Nana Mouskouri', cache), { url: 'right', art: undefined }); assert.equal(calls, 1);
   });
   await withFetch(() => Response.json({ results: [{ previewUrl: 'wrong', artistName: 'Someone Else' }] }), async () => {
     assert.equal(await previewFor('Other', 'Nana Mouskouri', cache), null);
@@ -74,5 +74,24 @@ test('a named artist with no songs inside the window is left out, with the reaso
     const result = await runAgent({ born: 1946, anchors: ['Anchor'] }, 'k-late', fresh());
     assert.ok(result.trace.some(s => s.text.includes('Left out Anchor')));
     assert.equal(result.pool.artists.length, 0);
+  });
+});
+
+test('artwork URLs are upscaled and everything else is left alone', () => {
+  assert.equal(bigArt('https://x/y/100x100bb.jpg'), 'https://x/y/600x600bb.jpg');
+  assert.equal(bigArt('https://x/y/cover.png'), 'https://x/y/cover.png');
+  assert.equal(bigArt(undefined), undefined);
+});
+test('agent announces each trace line as it happens, in order, matching the returned trace', async () => {
+  const seen: string[] = [];
+  await withFetch(url => {
+    if (url.includes('itunes.apple.com')) return Response.json({ results: [{ trackName: 'S', artistName: 'Anchor', previewUrl: 'p', releaseDate: '1964-01-01T00:00:00Z', artworkUrl100: 'https://x/100x100bb.jpg' }] });
+    if (url.includes('/search?')) return Response.json({ results: [{ entity_id: 'anchor', name: 'Anchor' }] });
+    return Response.json({ results: { entities: [] } });
+  }, async () => {
+    const result = await runAgent({ born: 1946, anchors: ['Anchor'] }, 'k-steps', fresh(), s => seen.push(s.text));
+    assert.deepEqual(seen, result.trace.map(s => s.text));
+    assert.ok(seen.length >= 3);
+    assert.equal(result.pool.artists[0].known?.[0].art, 'https://x/600x600bb.jpg');
   });
 });

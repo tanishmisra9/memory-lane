@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyReaction, buildPlan, eligible, eraWindow, inWindow, prompts, refill, safety, validate, type Artist, type Pool, type Profile } from '../src/engine';
+import { validateNote, applyReaction, buildPlan, eligible, eraWindow, inWindow, prompts, refill, safety, validate, type Artist, type Pool, type Profile } from '../src/engine';
 
 const artist = (id: string, over: Partial<Artist> = {}): Artist => ({ id, name: `Artist ${id}`, start: 1960, themes: ['Love'], songs: [`Song ${id}`], genres: ['Pop'], obscurity: 1, ...over });
 const profile: Profile = { born: 1946, anchors: [{ id: 'anchor', name: 'Anchor' }], weights: {}, banned: [] };
@@ -105,4 +105,13 @@ test('artists active around ages 15 to 25 outrank ones that only touch the windo
   assert.deepEqual(buildPlan({ artists: [edge, middle], media: [] }, profile).map(i => i.artistId), ['middle', 'edge']);
   const named = artist('n', { start: 1956, known: [{ title: 'Ten', year: 1956, previewUrl: 'a' }, { title: 'Nineteen', year: 1965, previewUrl: 'b' }], songs: ['Ten', 'Nineteen'] });
   assert.equal(buildPlan({ artists: [named], media: [] }, profile)[0].title, 'Nineteen');
+});
+
+test('notes: empty clears, trimmed, 280 characters allowed, 281 rejected, non-text rejected', () => {
+  assert.equal(validateNote('  '), '');
+  assert.equal(validateNote('  Danced to it at the wedding  '), 'Danced to it at the wedding');
+  assert.equal(validateNote('a'.repeat(280)).length, 280);
+  assert.throws(() => validateNote('a'.repeat(281)), /under 281/);
+  assert.throws(() => validateNote(42));
+  assert.equal(validateNote('<script>alert(1)</script>'), '<script>alert(1)</script>', 'stored as plain text; the page escapes it');
 });

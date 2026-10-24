@@ -60,25 +60,27 @@ export async function resolveAnchor(name: string, key: string, cache?: Cache): P
 export type AgentResult = { anchors: { id: string; name: string }[]; unresolved: string[]; pool: Pool; trace: Step[] };
 export const TARGET_SAFE = 15, MAX_HOPS = 3;
 
-export async function runAgent(input: { born: number; anchors: string[] }, key: string, cache?: Cache): Promise<AgentResult> {
+export async function runAgent(input: { born: number; anchors: string[] }, key: string, cache?: Cache, onStep?: (step: Step) => void): Promise<AgentResult> {
   const trace: Step[] = [], [from, to] = eraWindow(input.born);
+  // Every trace line is also announced as it happens, so the page can show the real work live.
+  const say = (step: Step) => { trace.push(step); onStep?.(step); };
   const resolved = await Promise.all(input.anchors.map(async name => ({ name, hit: await resolveAnchor(name, key, cache) })));
   const anchors = resolved.flatMap(r => r.hit ? [{ id: r.hit.id, name: r.hit.name }] : []), unresolved = resolved.filter(r => !r.hit).map(r => r.name);
   if (!anchors.length) throw Object.assign(new Error(`Qloo could not find ${unresolved.join(', ')}. Check the spelling or pick from the shelf.`), { unresolved });
-  trace.push({ text: `Found ${anchors.map(a => a.name).join(', ')} in Qloo.`, kept: anchors.length, dropped: unresolved.length });
+  say({ text: `Found ${anchors.map(a => a.name).join(', ')} in Qloo.`, kept: anchors.length, dropped: unresolved.length });
 
   const names = new Map(anchors.map(a => [a.id, a.name])), pool = new Map<string, Artist>();
   // The artists the caregiver named go first: they are the surest songs, and they face the same safety screen as everyone else.
   for (const { hit } of resolved) {
     if (!hit?.artist) continue;
     const known = await datedSongs(hit.name, from, to, cache);
-    if (!known.length) { trace.push({ text: `Left out ${hit.name}: no songs on iTunes released ${from} to ${to}.` }); continue; }
+    if (!known.length) { say({ text: `Left out ${hit.name}: no songs on iTunes released ${from} to ${to}.` }); continue; }
     pool.set(hit.id, { ...hit.artist, known, songs: known.map(k => k.title), start: known[0].year, end: undefined });
   }
   let signals = anchors.map(a => a.id);
   const used = new Set(signals);
   for (let hop = 1; hop <= MAX_HOPS; hop++) {
-    trace.push({ text: `Asking Qloo for artists near ${signals.length} you gave it.` });
+    say({ text: `Asking Qloo for artists near ${signals.length} you gave it.` });
     const data = await qlooGet('/v2/insights', { 'filter.type': 'urn:entity:artist', 'signal.interests.entities': signals.join(','), take: '50', 'feature.explainability': 'true' }, key, cache);
     let added = 0;
     for (const raw of list(data)) {
@@ -88,14 +90,14 @@ export async function runAgent(input: { born: number; anchors: string[] }, key: 
       pool.set(artist.id, artist); names.set(artist.id, artist.name); added++;
     }
     const fit = [...pool.values()].filter(a => inWindow(a, input.born)), safe = fit.filter(a => safety(a).safe);
-    trace.push({ text: `Kept artists active ${from} to ${to} that are gentle and familiar.`, kept: safe.length, dropped: pool.size - safe.length });
+    say({ text: `Kept artists active ${from} to ${to} that are gentle and familiar.`, kept: safe.length, dropped: pool.size - safe.length });
     if (safe.length >= TARGET_SAFE || !added) break;
     // Re-anchor on artists not yet used, so each hop explores new ground instead of repeating the last query.
     const fresh = safe.filter(a => !used.has(a.id)).slice(0, 5);
     if (!fresh.length) break;
     fresh.forEach(a => used.add(a.id));
     signals = [...anchors.map(a => a.id), ...fresh.map(a => a.id)];
-    if (hop < MAX_HOPS) trace.push({ text: `Not enough yet. Asking again from ${fresh.slice(0, 3).map(a => a.name).join(', ')}.` });
+    if (hop < MAX_HOPS) say({ text: `Not enough yet. Asking again from ${fresh.slice(0, 3).map(a => a.name).join(', ')}.` });
   }
 
   const seeds = [...pool.values()].filter(a => inWindow(a, input.born) && safety(a).safe).slice(0, 5).map(a => a.id);
@@ -106,22 +108,25 @@ export async function runAgent(input: { born: number; anchors: string[] }, key: 
     const first = list(data).map(raw => toMedia(raw, kind)).filter((m): m is Media => !!m && !!m.image).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))[0];
     if (first) media.push(first);
   }
-  trace.push({ text: `Picked films and shows released ${from} to ${to}.`, kept: media.length });
+  say({ text: `Picked films and shows released ${from} to ${to}.`, kept: media.length });
   return { anchors, unresolved, pool: { artists: [...pool.values()], media }, trace };
 }
 
+// iTunes serves artwork at the size in its URL; ask for a big one for the full-screen player.
+export const bigArt = (url?: string): string | undefined => url ? url.replace(/\/\d+x\d+bb\.(jpg|png)/, '/600x600bb.$1') : undefined;
+
 // Qloo's search results carry no era data, so for the artists a caregiver names, iTunes supplies dated songs inside the window.
-export async function datedSongs(artist: string, from: number, to: number, cache: Cache = memoryCache): Promise<{ title: string; year: number; previewUrl: string }[]> {
-  const id = `itunes-dated2:${norm(artist)}:${from}:${to}`, hit = await cache.get(id);
-  if (hit) return hit as { title: string; year: number; previewUrl: string }[];
+export async function datedSongs(artist: string, from: number, to: number, cache: Cache = memoryCache): Promise<{ title: string; year: number; previewUrl: string; art?: string }[]> {
+  const id = `itunes-dated3:${norm(artist)}:${from}:${to}`, hit = await cache.get(id);
+  if (hit) return hit as { title: string; year: number; previewUrl: string; art?: string }[];
   const response = await fetch(`https://itunes.apple.com/search?${new URLSearchParams({ term: artist, media: 'music', entity: 'song', attribute: 'artistTerm', limit: '50' })}`).catch(() => null);
   if (!response?.ok) return [];
-  const data = await response.json() as { results?: Array<{ trackName?: string; artistName?: string; previewUrl?: string; releaseDate?: string }> };
-  const lead = norm(artist).split(' ')[0], seen = new Set<string>(), out: { title: string; year: number; previewUrl: string }[] = [];
+  const data = await response.json() as { results?: Array<{ trackName?: string; artistName?: string; previewUrl?: string; releaseDate?: string; artworkUrl100?: string }> };
+  const lead = norm(artist).split(' ')[0], seen = new Set<string>(), out: { title: string; year: number; previewUrl: string; art?: string }[] = [];
   for (const r of data.results ?? []) {
     const year = Number((r.releaseDate || '').slice(0, 4)), title = r.trackName || '';
     if (!r.previewUrl || !title || !norm(r.artistName || '').includes(lead) || year < from || year > to || seen.has(norm(title))) continue;
-    seen.add(norm(title)); out.push({ title, year, previewUrl: r.previewUrl });
+    seen.add(norm(title)); const art = bigArt(r.artworkUrl100); out.push(art ? { title, year, previewUrl: r.previewUrl, art } : { title, year, previewUrl: r.previewUrl });
   }
   // Keep the songs nearest the middle of the window (about age 20), not simply the oldest.
   const middle = (from + to) / 2;
@@ -132,14 +137,15 @@ export async function datedSongs(artist: string, from: number, to: number, cache
 }
 
 // iTunes returns a 30-second preview; the artist name must match so a cover or namesake is never played.
-export async function previewFor(song: string, artist: string, cache: Cache = memoryCache): Promise<string | null> {
-  const id = `itunes:${norm(song)}:${norm(artist)}`, hit = await cache.get(id);
-  if (hit !== null) return hit === '' ? null : hit as string;
+export async function previewFor(song: string, artist: string, cache: Cache = memoryCache): Promise<{ url: string; art?: string } | null> {
+  const id = `itunes2:${norm(song)}:${norm(artist)}`, hit = await cache.get(id);
+  if (hit !== null) return hit === '' ? null : hit as { url: string; art?: string };
   const response = await fetch(`https://itunes.apple.com/search?${new URLSearchParams({ term: `${song} ${artist}`, media: 'music', entity: 'song', limit: '6' })}`).catch(() => null);
   if (!response?.ok) return null;
-  const data = await response.json() as { results?: Array<{ previewUrl?: string; artistName?: string }> };
+  const data = await response.json() as { results?: Array<{ previewUrl?: string; artistName?: string; artworkUrl100?: string }> };
   const lead = norm(artist).split(' ')[0];
-  const found = data.results?.find(r => r.previewUrl && norm(r.artistName || '').includes(lead))?.previewUrl ?? null;
+  const match = data.results?.find(r => r.previewUrl && norm(r.artistName || '').includes(lead));
+  const found = match?.previewUrl ? { url: match.previewUrl, art: bigArt(match.artworkUrl100) } : null;
   await cache.set(id, found ?? '', 7 * 24 * 3600_000);
   return found;
 }
