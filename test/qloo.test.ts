@@ -110,3 +110,18 @@ test('cultural reading: scenes come from genre tags, influences and origin from 
   assert.deepEqual([profile.scenes[0], profile.influences[0], profile.origins], ['Laiko', 'A', ['Greece']]);
   assert.ok(!profile.influences.includes('Two'), 'an artist is not listed as its own influence');
 });
+
+test('domain calls are checked against an allowlist because Qloo silently ignores strays', async () => {
+  const { checkParams } = await import('../src/domains');
+  assert.doesNotThrow(() => checkParams('movie', { 'filter.type': 'urn:entity:movie', 'filter.release_year.min': '1957', take: '5' }));
+  assert.throws(() => checkParams('destination', { 'filter.type': 'urn:entity:destination', 'filter.release_year.min': '1957' }), /does not apply to destination/);
+  assert.throws(() => checkParams('book', { 'filter.release_year.min': '1957' }), /does not apply to book/);
+});
+test('scripted capsule takes the closest result per domain, preferring one with artwork', async () => {
+  const { scripted } = await import('../src/capsule');
+  const c = (id: string, kind: 'film' | 'book', image?: string) => ({ id, title: id, year: 1965, kind, image, names: [], tags: [] });
+  const ev = { anchors: [], unresolved: [], artists: [], culture: { scenes: [], influences: [], origins: [], fans: [] }, trace: [], cands: { film: [c('no-art', 'film'), c('has-art', 'film', 'u')], show: [], book: [c('b1', 'book')], place: [], meal: [] } };
+  const out = scripted(ev as never);
+  assert.deepEqual(out.pool.media.map(m => m.id), ['has-art', 'b1']);
+  assert.equal(out.agent, 'scripted');
+});

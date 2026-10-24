@@ -8,9 +8,9 @@ async function json<T>(response: Response): Promise<T> {
 }
 const post = (path: string, body: unknown) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
-// Builds a session and reports each real step the agent takes as it happens.
-export async function buildSession(input: BuildInput, onStep: (step: Step) => void, signal?: AbortSignal): Promise<SessionView> {
-  const response = await fetch('/api/sessions', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify(input) });
+// Posts and reads a newline-delimited stream: each real step the agent takes as it happens, then the finished session.
+async function streamSession(path: string, body: unknown, onStep: (step: Step) => void, signal?: AbortSignal): Promise<SessionView> {
+  const response = await fetch(path, { method: 'POST', signal, headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify(body) });
   if (!response.ok || !response.body) return json<SessionView>(response);
   let done: SessionView | undefined, failure: ApiError | undefined;
   const parser = ndjsonParser(line => {
@@ -25,6 +25,8 @@ export async function buildSession(input: BuildInput, onStep: (step: Step) => vo
   if (!done) throw new ApiError('The connection dropped before the session was ready. Please try again.');
   return done;
 }
+export const buildSession = (input: BuildInput, onStep: (step: Step) => void, signal?: AbortSignal) => streamSession('/api/sessions', input, onStep, signal);
+export const chatWithAgent = (id: string, message: string, onStep: (step: Step) => void) => streamSession(`/api/sessions/${id}/chat`, { message }, onStep);
 
 export const getSession = (id: string) => fetch(`/api/sessions/${id}`).then(r => json<SessionView>(r));
 export const react = (id: string, itemId: string, reaction: Reaction) => post(`/api/sessions/${id}/react`, { itemId, reaction }).then(r => json<SessionView>(r));

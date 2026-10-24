@@ -25,7 +25,7 @@ export function Landing() {
               <span>It's the one from when they were 19.</span>
             </h1>
           </BlurFade>
-          <BlurFade delay={0.1}><p style={{ marginTop: 24, maxWidth: '40ch', fontSize: 20 }}>Play songs, films and shows from the years someone with dementia was young. Tap how each one lands. Keep a Memory Book for family and care staff.</p></BlurFade>
+          <BlurFade delay={0.1}><p style={{ marginTop: 20, maxWidth: '46ch', fontSize: 20 }}>An agent uses Qloo to build a time capsule from the years someone with dementia was young: music, film, books, places and food. You keep the Memory Book.</p></BlurFade>
           <BlurFade delay={0.2}>
             <div style={{ marginTop: 32, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
               <Link to="/app" className="btn">Start a session</Link>

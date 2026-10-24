@@ -2,9 +2,11 @@
 // What Qloo knows about an artist's cultural place: the scene it belongs to, who shaped it, where it comes from, and how close it sits to each artist the caregiver named.
 export type Culture = { scene: string[]; influences: string[]; origin?: string; impact?: string; fans: string[]; closest: { name: string; pct: number }[] };
 export type Artist = { id: string; name: string; culture?: Culture; start?: number; end?: number; obscurity?: number; complexity?: number; themes: string[]; songs: string[]; genres: string[]; image?: string; via?: string; known?: { title: string; year: number; previewUrl: string; art?: string }[] };
-export type Media = { id: string; title: string; year: number; kind: 'film' | 'show'; image?: string; popularity?: number; closest?: { name: string; pct: number }[] };
+// Everything that is not a song: films, shows and books carry a year; a place to revisit or a meal near them has none (timeless).
+export type MediaKind = 'film' | 'show' | 'book' | 'place' | 'meal';
+export type Media = { id: string; title: string; year: number; kind: MediaKind; image?: string; popularity?: number; timeless?: boolean; blurb?: string; closest?: { name: string; pct: number }[] };
 export type Reaction = 'smiled' | 'neutral' | 'upset';
-export type Item = { id: string; kind: 'song' | 'film' | 'show'; code: string; title: string; by?: string; artistId?: string; genres: string[]; year: number; age: number; ages?: [number, number]; active?: string; image?: string; art?: string; themes: string[]; obscurity?: number; note?: string; culture?: Culture; previewUrl?: string | null; via?: string; found: boolean; notes: string[]; reaction?: Reaction };
+export type Item = { id: string; kind: 'song' | MediaKind; timeless?: boolean; blurb?: string; code: string; title: string; by?: string; artistId?: string; genres: string[]; year: number; age: number; ages?: [number, number]; active?: string; image?: string; art?: string; themes: string[]; obscurity?: number; note?: string; culture?: Culture; previewUrl?: string | null; via?: string; found: boolean; notes: string[]; reaction?: Reaction };
 export type Profile = { born: number; name?: string; anchors: { id: string; name: string }[]; weights: Record<string, number>; banned: string[] };
 export type CulturalProfile = { scenes: string[]; influences: string[]; origins: string[]; fans: string[] };
 export type Pool = { artists: Artist[]; media: Media[]; culture?: CulturalProfile };
@@ -36,7 +38,7 @@ export function safety(artist: Artist): { safe: boolean; notes: string[] } {
   return { safe: true, notes };
 }
 
-export function validate(input: unknown): { born: number; name?: string; anchors: string[] } {
+export function validate(input: unknown): { born: number; name?: string; anchors: string[]; city?: string } {
   const body = (input ?? {}) as Record<string, unknown>;
   const born = Number(body.born);
   if (!Number.isInteger(born) || born < MIN_BORN || born > MAX_BORN) throw new Error(`Birth year must be a whole year from ${MIN_BORN} to ${MAX_BORN}.`);
@@ -44,7 +46,8 @@ export function validate(input: unknown): { born: number; name?: string; anchors
   const unique = [...new Set(anchors)];
   if (unique.length < 1 || unique.length > 3) throw new Error('Name one to three artists they loved.');
   const name = typeof body.name === 'string' ? body.name.trim().slice(0, 40) : '';
-  return { born, name: name || undefined, anchors: unique };
+  const city = typeof body.city === 'string' ? body.city.trim().slice(0, 60) : '';
+  return { born, name: name || undefined, anchors: unique, city: city || undefined };
 }
 
 // The headline promises "when they were 19", so artists active around ages 15 to 25 outrank ones that only touch the edges of the window.
@@ -78,7 +81,7 @@ function songItem(artist: Artist, profile: Profile, code: string, used: Set<stri
   return { id: `${artist.id}:${title}`, kind: 'song', code, title, by: artist.name, artistId: artist.id, genres: artist.genres, year: from, age: from - profile.born, ages: [from - profile.born, to - profile.born], active: artist.start === undefined ? undefined : artist.end ? `${artist.start} to ${artist.end}` : `since ${artist.start}`, image: artist.image, themes: artist.themes, obscurity: artist.obscurity, culture: artist.culture, via: artist.via, found: !profile.anchors.some(a => a.id === artist.id),
     notes: [`active ${artist.start}${artist.end ? `-${artist.end}` : ' on'}`, ...safety(artist).notes] };
 }
-const mediaItem = (media: Media, profile: Profile, code: string): Item => ({ id: media.id, kind: media.kind, code, title: media.title, genres: [], themes: [], year: media.year, age: media.year - profile.born, image: media.image, culture: media.closest ? { scene: [], influences: [], fans: [], closest: media.closest } : undefined, found: true, notes: [`released ${media.year}`] });
+const mediaItem = (media: Media, profile: Profile, code: string): Item => ({ id: media.id, kind: media.kind, timeless: media.timeless, blurb: media.blurb, code, title: media.title, genres: [], themes: [], year: media.timeless ? 0 : media.year, age: media.timeless ? 0 : media.year - profile.born, image: media.image, culture: media.closest ? { scene: [], influences: [], fans: [], closest: media.closest } : undefined, found: true, notes: [`released ${media.year}`] });
 
 // Songs the artist is known for, other than the ones already picked, in Qloo's order.
 export const alternates = (pool: Pool, item: Item): string[] => pool.artists.find(a => a.id === item.artistId)?.songs.filter(song => song !== item.title) ?? [];
@@ -93,8 +96,13 @@ export function buildPlan(pool: Pool, profile: Profile): Item[] {
     if (used.has(key(item.title))) continue;
     seen.add(artist.name); used.add(key(item.title)); items.push(item);
   }
-  const media = pool.media.filter(m => m.year >= profile.born + 10 && m.year <= profile.born + 30).slice(0, MEDIA);
-  media.forEach((m, i) => items.push(mediaItem(m, profile, `B${i + 1}`)));
+  // Films, shows and books must fall in the window; a place or a meal has no year. Codes: B screen, C book, D place, E meal.
+  const fits = (m: Media) => m.timeless || (m.year >= profile.born + 10 && m.year <= profile.born + 30);
+  const letters: Record<string, string> = { film: 'B', show: 'B', book: 'C', place: 'D', meal: 'E' }, counts: Record<string, number> = {};
+  for (const m of pool.media.filter(fits)) {
+    const letter = letters[m.kind]!; counts[letter] = (counts[letter] ?? 0) + 1;
+    if (counts[letter]! <= (letter === 'B' ? MEDIA : 1)) items.push(mediaItem(m, profile, `${letter}${counts[letter]}`));
+  }
   return items;
 }
 

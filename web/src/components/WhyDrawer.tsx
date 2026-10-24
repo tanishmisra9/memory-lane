@@ -1,8 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { m, useReducedMotion } from 'framer-motion';
 import type { Item } from '../lib/types';
-import { springFirm } from '../lib/motion';
+import { Drawer } from './Drawer';
 
 const lines = (item: Item, born: number): { head: string; body: string }[] => {
   const out: { head: string; body: string }[] = [];
@@ -12,8 +9,10 @@ const lines = (item: Item, born: number): { head: string; body: string }[] => {
     if (item.themes.length) out.push({ head: 'Why it is gentle', body: `Lyrical themes screened: ${item.themes.join(', ')}. None are upsetting.` });
     if (item.obscurity !== undefined) out.push({ head: 'Why it is familiar', body: `Familiarity rating ${item.obscurity}. Only artists rated 3 or lower are played.` });
     if (!item.themes.length || item.obscurity === undefined) out.push({ head: 'What could not be checked', body: item.found ? 'Qloo lists no lyrical themes or familiarity rating for this artist, so those checks could not run. It is marked "unknown" rather than assumed safe.' : 'You named this artist, and Qloo keeps no lyrical themes or familiarity rating for it, so those checks could not run. It is included because you chose it.' });
+  } else if (item.timeless) {
+    out.push({ head: 'Where it came from', body: item.kind === 'meal' ? 'Qloo searched restaurants near the city you gave, filtered to their home cuisine, ranked by closeness to the artists you named.' : 'Qloo ranked destinations by cultural closeness to the artists you named. This is somewhere to revisit in memory or on a map.' });
   } else {
-    out.push({ head: 'Where it came from', body: `Qloo returned this ${item.kind} near the artists, released ${item.year}, when they were ${item.age}. Of the in-window results, the most widely known was chosen.` });
+    out.push({ head: 'Where it came from', body: `Qloo returned this ${item.kind} near the artists you named, from ${item.year}, when they were ${item.age}. Qloo ranks these by cultural closeness, not fame.` });
   }
   const c = item.culture;
   if (c) {
@@ -30,38 +29,13 @@ const lines = (item: Item, born: number): { head: string; body: string }[] => {
   return out;
 };
 
-// A dialog that traps focus, locks the page behind it (inert), and closes on Escape: the Portfolio's overlay pattern.
 export function WhyDrawer({ item, born, onClose }: { item: Item; born: number; onClose: () => void }) {
-  const reduce = useReducedMotion(), ref = useRef<HTMLDivElement>(null), opener = useRef<Element | null>(document.activeElement);
-  useEffect(() => {
-    const main = document.getElementById('app-main'); main?.setAttribute('inert', '');
-    ref.current?.querySelector<HTMLElement>('button')?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
-      if (e.key === 'Tab' && ref.current) {
-        const f = [...ref.current.querySelectorAll<HTMLElement>('button, a[href]')]; if (!f.length) return;
-        const first = f[0]!, last = f[f.length - 1]!;
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => { window.removeEventListener('keydown', onKey, true); main?.removeAttribute('inert'); (opener.current as HTMLElement | null)?.focus?.(); };
-  }, [onClose]);
-  return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 70 }}>
-      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgb(48 22 12 / .6)' }} />
-      <m.div ref={ref} role="dialog" aria-modal="true" aria-labelledby="why-title" className="card" initial={reduce ? false : { x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={springFirm}
-        style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 'min(440px, 100%)', overflow: 'auto', padding: 24, borderRight: 0, borderTop: 0, borderBottom: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12 }}>
-          <h2 id="why-title" style={{ fontSize: 32, lineHeight: 1.05 }}>Why this {item.kind === 'song' ? 'song' : item.kind}</h2>
-          <button type="button" className="btn quiet small" onClick={onClose} aria-label="Close" style={{ minWidth: 44, padding: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" /></svg>
-          </button>
-        </div>
-        <p style={{ marginTop: 8, font: '700 24px var(--font-display)', textTransform: 'uppercase' }}>{item.title}{item.by ? <span style={{ fontWeight: 400, fontFamily: 'var(--font-body)', textTransform: 'none', fontSize: 18 }}> · {item.by}</span> : null}</p>
-        <dl style={{ margin: '20px 0 0', display: 'grid', gap: 18 }}>
-          {lines(item, born).map(l => <div key={l.head}><dt className="label">{l.head}</dt><dd style={{ margin: '4px 0 0' }}>{l.body}</dd></div>)}
-        </dl>
-      </m.div>
-    </div>, document.body);
+  return (
+    <Drawer id="why-title" title={`Why this ${item.kind === 'song' ? 'song' : item.kind}`} onClose={onClose}>
+      <p style={{ marginTop: 8, font: '700 24px var(--font-display)', textTransform: 'uppercase' }}>{item.title}{item.by ? <span style={{ fontWeight: 400, fontFamily: 'var(--font-body)', textTransform: 'none', fontSize: 18 }}> · {item.by}</span> : null}</p>
+      <dl style={{ margin: '20px 0 0', display: 'grid', gap: 18 }}>
+        {lines(item, born).map(l => <div key={l.head}><dt className="label">{l.head}</dt><dd style={{ margin: '4px 0 0' }}>{l.body}</dd></div>)}
+      </dl>
+    </Drawer>
+  );
 }

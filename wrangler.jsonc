@@ -3,6 +3,7 @@
   "main": "src/worker.ts",
   "compatibility_date": "2026-10-22",
   "assets": { "directory": "./dist", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  "ai": { "binding": "AI" },
   "triggers": { "crons": ["0 4 * * *"] },
   "d1_databases": [{ "binding": "DB", "database_name": "memory-lane", "database_id": "ccc76c3b-8662-44f1-9c3e-87d940fe5672" }]
 }

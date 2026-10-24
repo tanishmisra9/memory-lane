@@ -27,7 +27,8 @@ test('safety rejects obscure, complex, upsetting and songless artists; unknowns 
 });
 
 test('validate enforces year range and one to three distinct anchors', () => {
-  assert.deepEqual(validate({ born: 1946, anchors: [' Nana ', 'Nana', 'Elvis'], name: ' Margaret ' }), { born: 1946, name: 'Margaret', anchors: ['Nana', 'Elvis'] });
+  assert.deepEqual(validate({ born: 1946, anchors: [' Nana ', 'Nana', 'Elvis'], name: ' Margaret ' }), { born: 1946, name: 'Margaret', anchors: ['Nana', 'Elvis'], city: undefined });
+  assert.equal(validate({ born: 1946, anchors: ['a'], city: '  Chicago  ' }).city, 'Chicago');
   assert.throws(() => validate({ born: 1919, anchors: ['a'] }), /1920/);
   assert.throws(() => validate({ born: 1975.5, anchors: ['a'] }));
   assert.throws(() => validate({ born: 1946, anchors: [] }), /one to three/);
@@ -114,4 +115,13 @@ test('notes: empty clears, trimmed, 280 characters allowed, 281 rejected, non-te
   assert.throws(() => validateNote('a'.repeat(281)), /under 281/);
   assert.throws(() => validateNote(42));
   assert.equal(validateNote('<script>alert(1)</script>'), '<script>alert(1)</script>', 'stored as plain text; the page escapes it');
+});
+
+test('books, places and meals get their own codes, and only dated kinds are held to the window', () => {
+  const pool: Pool = { artists: [artist('1')], media: [
+    { id: 'f', title: 'Film', year: 1965, kind: 'film' }, { id: 'old', title: 'Too old', year: 1930, kind: 'book' }, { id: 'b', title: 'Book', year: 1970, kind: 'book' },
+    { id: 'p', title: 'Athens', year: 0, kind: 'place', timeless: true }, { id: 'm', title: 'Taverna', year: 0, kind: 'meal', timeless: true }] };
+  const plan = buildPlan(pool, profile);
+  assert.deepEqual(plan.filter(i => i.kind !== 'song').map(i => [i.code, i.title, !!i.timeless]), [['B1', 'Film', false], ['C1', 'Book', false], ['D1', 'Athens', true], ['E1', 'Taverna', true]]);
+  assert.deepEqual(plan.filter(i => i.timeless).map(i => [i.year, i.age]), [[0, 0], [0, 0]]);
 });

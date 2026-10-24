@@ -6,6 +6,7 @@ import { EraTimeline } from '../components/EraTimeline';
 import { Queue } from '../components/Queue';
 import { ReactionBar } from '../components/ReactionBar';
 import { Transport } from '../components/Transport';
+import { ChatDrawer } from '../components/ChatDrawer';
 import { WhyDrawer } from '../components/WhyDrawer';
 import { getSession, react as reactApi, saveNote } from '../lib/api';
 import { useAudio } from '../lib/audio';
@@ -19,7 +20,7 @@ export function Player() {
   const seeded = (location.state as { session?: SessionView } | null)?.session;
   const [session, setSession] = useState<SessionView | null>(seeded?.id === id ? seeded : null);
   const [gone, setGone] = useState(false), [loadError, setLoadError] = useState('');
-  const [index, setIndex] = useState(0), [busy, setBusy] = useState(false), [why, setWhy] = useState(false), [finished, setFinished] = useState(false), [notice, setNotice] = useState('');
+  const [index, setIndex] = useState(0), [busy, setBusy] = useState(false), [why, setWhy] = useState(false), [chat, setChat] = useState(false), [finished, setFinished] = useState(false), [notice, setNotice] = useState('');
   const dir = useRef(1), chain = useRef<Promise<unknown>>(Promise.resolve());
   // Every change to the session is sent one after another, so two quick taps can never collide on the server.
   const serial = useCallback(<T,>(task: () => Promise<T>): Promise<T> => { const run = chain.current.then(task, task); chain.current = run.catch(() => {}); return run; }, []);
@@ -57,7 +58,7 @@ export function Player() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
-      if (why || e.metaKey || e.ctrlKey || e.altKey || t?.closest('input, textarea, select, [contenteditable], [role="slider"]')) return;
+      if (why || chat || e.metaKey || e.ctrlKey || e.altKey || t?.closest('input, textarea, select, [contenteditable], [role="slider"]')) return;
       if (e.key === ' ' && t?.closest('button, a')) return;
       if (e.key === ' ') { e.preventDefault(); audio.toggle(); }
       else if (e.key === 'ArrowRight') go(index + 1);
@@ -69,13 +70,13 @@ export function Player() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [why, audio, go, index, doReact]);
+  }, [why, chat, audio, go, index, doReact]);
 
   if (gone) return <Gone />;
   if (loadError) return <main className="wrap" id="app-main" style={{ paddingTop: 64 }}><p className="error" role="alert">{loadError}</p><p style={{ marginTop: 16 }}><button className="btn" onClick={() => location.state ? navigate(0) : window.location.reload()}>Try again</button></p></main>;
   if (!session || !item) return <main className="wrap" id="app-main" style={{ paddingTop: 64 }}><p role="status">Loading the session…</p></main>;
 
-  const span = item.kind === 'song' || item.kind === 'film' || item.kind === 'show' ? ageSpan(item) : null;
+  const span = item.timeless ? null : ageSpan(item);
   const name = session.name;
   return (
     <main id="app-main" className="wrap" style={{ paddingTop: 8, paddingBottom: 56 }}>
@@ -83,6 +84,7 @@ export function Player() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <p className="label">{name ? `${name}, born ${session.born}` : `Born ${session.born}`}</p>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn quiet small" onClick={() => setChat(true)}>Tell the agent</button>
           <button type="button" className="btn quiet small" onClick={() => setWhy(true)}>Why this</button>
           <Link className="btn quiet small" to={`/book/${session.id}`}>Memory Book</Link>
         </div>
@@ -112,7 +114,9 @@ export function Player() {
                 {item.culture?.scene.length ? <p style={{ marginTop: 6, fontWeight: 600 }}>{item.culture.scene.join(' · ')}</p> : null}
               </div>
               <div className="p-timeline"><EraTimeline born={session.born} span={span} /></div>
-              <Transport audio={audio} canPlay={!!item.previewUrl} onToggle={audio.toggle} onSeek={audio.seek} onPrev={() => go(index - 1)} onNext={() => go(index + 1)} hasPrev={index > 0} hasNext={!last} />
+              {item.blurb && <p style={{ maxWidth: '52ch' }}>{item.blurb}</p>}
+              {item.kind === 'song' && <Transport audio={audio} canPlay={!!item.previewUrl} onToggle={audio.toggle} onSeek={audio.seek} onPrev={() => go(index - 1)} onNext={() => go(index + 1)} hasPrev={index > 0} hasNext={!last} />}
+              {item.kind !== 'song' && <div style={{ display: 'flex', gap: 12 }}><button type="button" className="btn quiet small" onClick={() => go(index - 1)} disabled={index === 0}>Previous</button><button type="button" className="btn quiet small" onClick={() => go(index + 1)} disabled={last}>Next</button></div>}
               <ReactionBar item={item} busy={busy} attention={audio.ended} onReact={doReact} onNote={doNote} onNext={advance} isLast={last} />
               {notice && <p className="hint" role="status">{notice}</p>}
               <p className="hint noprint kbdhint" aria-hidden="true"><span className="kbd">Space</span> play <span className="kbd">←</span> <span className="kbd">→</span> songs <span className="kbd">1</span> <span className="kbd">2</span> <span className="kbd">3</span> react <span className="kbd">W</span> why</p>
@@ -120,6 +124,7 @@ export function Player() {
           </m.section>
         )}
       </AnimatePresence>
+      {chat && <ChatDrawer id={session.id} name={session.name} onClose={() => setChat(false)} onPlan={s => { audio.stop(); setSession(s); setIndex(0); setFinished(false); }} />}
       {why && <WhyDrawer item={item} born={session.born} onClose={() => setWhy(false)} />}
     </main>
   );

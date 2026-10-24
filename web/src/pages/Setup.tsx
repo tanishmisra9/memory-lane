@@ -12,7 +12,7 @@ type Phase = 'ask' | 'tuning' | 'failed';
 export function Setup() {
   const navigate = useNavigate(), [params] = useSearchParams(), reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>('ask'), [step, setStep] = useState(0);
-  const [name, setName] = useState(''), [born, setBorn] = useState(''), [anchors, setAnchors] = useState<string[]>([]);
+  const [name, setName] = useState(''), [city, setCity] = useState(''), [born, setBorn] = useState(''), [anchors, setAnchors] = useState<string[]>([]);
   const [steps, setSteps] = useState<Step[]>([]), [error, setError] = useState(''), [problem, setProblem] = useState('');
   const alive = useRef(true), started = useRef(false), last = useRef<BuildInput | null>(null);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
@@ -35,7 +35,7 @@ export function Setup() {
   const next = (e?: FormEvent) => {
     e?.preventDefault(); setProblem('');
     if (step === 1 && !bornValid) { setProblem(`Enter a year from ${MIN} to ${MAX}.`); return; }
-    if (step === 2) { if (!anchors.length) { setProblem('Add at least one artist they loved.'); return; } void run({ born: bornNumber, name: name.trim() || undefined, anchors }); return; }
+    if (step === 2) { if (!anchors.length) { setProblem('Add at least one artist they loved.'); return; } void run({ born: bornNumber, name: name.trim() || undefined, anchors, city: city.trim() || undefined }); return; }
     setStep(s => s + 1);
   };
 
@@ -50,7 +50,7 @@ export function Setup() {
           <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }} tabIndex={-1} ref={el => el?.focus({ preventScroll: true })}>{titles[step]}</h1>
           {step === 0 && <NameStep value={name} onChange={setName} />}
           {step === 1 && <BornStep value={born} onChange={setBorn} valid={bornValid} />}
-          {step === 2 && <ArtistsStep anchors={anchors} onChange={setAnchors} born={bornValid ? bornNumber : undefined} />}
+          {step === 2 && <ArtistsStep anchors={anchors} onChange={setAnchors} born={bornValid ? bornNumber : undefined} city={city} onCity={setCity} />}
           <p className="error" role="alert" style={{ marginTop: 12, minHeight: '1.5em' }}>{problem}</p>
           <div style={{ marginTop: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
             <button type="submit" className="btn">{step === 2 ? 'Find their music' : step === 0 && !name ? 'Skip' : 'Next'}</button>
@@ -84,7 +84,7 @@ function BornStep({ value, onChange, valid }: { value: string; onChange: (v: str
   );
 }
 
-function ArtistsStep({ anchors, onChange, born }: { anchors: string[]; onChange: (a: string[]) => void; born?: number }) {
+function ArtistsStep({ anchors, onChange, born, city, onCity }: { anchors: string[]; onChange: (a: string[]) => void; born?: number; city: string; onCity: (c: string) => void }) {
   const [q, setQ] = useState(''), [hits, setHits] = useState<ArtistHit[]>([]), [active, setActive] = useState(-1), [shelf, setShelf] = useState<Shelf>({});
   useEffect(() => { getShelf().then(setShelf).catch(() => {}); }, []);
   useEffect(() => {
@@ -133,6 +133,11 @@ function ArtistsStep({ anchors, onChange, born }: { anchors: string[]; onChange:
           {Object.entries(shelf).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
         </select>
         <p className="hint">{born ? 'Fills in well-known artists from that country. Change them freely.' : 'Fills in well-known artists. Change them freely.'}</p>
+      </div>
+      <div className="field">
+        <label htmlFor="city">Where do they live now? <span className="hint">(optional)</span></label>
+        <input id="city" className="input" value={city} maxLength={60} autoComplete="off" placeholder="Chicago" onChange={e => onCity(e.target.value)} />
+        <p className="hint">A city name, never an address. It lets Qloo find a taste-of-home restaurant nearby.</p>
       </div>
     </div>
   );

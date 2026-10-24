@@ -42,7 +42,7 @@ try {
     await page.fill('#born', '1947'); assert.match(await page.locator('#born-help').innerText(), /1957 to 1977/);
     await page.getByRole('button', { name: 'Next' }).click(); await page.getByRole('heading', { name: /Which artists/ }).waitFor();
     await page.getByRole('button', { name: 'Find their music' }).click(); assert.match(await page.locator('[role=alert]').first().innerText(), /at least one artist/);
-    await page.selectOption('#shelf', 'greece'); await page.getByRole('list', { name: 'Chosen artists' }).waitFor();
+    await page.selectOption('#shelf', 'greece'); await page.getByRole('list', { name: 'Chosen artists' }).waitFor(); await page.fill('#city', 'Chicago');
     await page.getByRole('button', { name: 'Find their music' }).click();
     await page.getByText(/Looking through Qloo/).waitFor(); // the tuning screen
     await page.getByText(/Qloo reads their culture as/).waitFor({ timeout: 120000 }); // the cultural reading arrives live
@@ -80,7 +80,8 @@ try {
     step(`${name} reactions and notes`);
 
     // Walk to the end: jump to the last item, react, finish.
-    await page.getByRole('button', { name: /^B2:/ }).click(); await page.waitForFunction(() => document.querySelector('[aria-current=step]')?.textContent === 'B2');
+    const queue = page.locator('nav[aria-label="Session queue"] button'), lastCode = (await queue.last().innerText()).trim();
+    await queue.last().click(); await page.waitForFunction(c => document.querySelector('[aria-current=step]')?.textContent === c, lastCode);
     await page.keyboard.press('2'); await page.getByRole('button', { name: 'Save and finish' }).click();
     await page.getByRole('heading', { name: 'Your Memory Book is ready' }).waitFor(); step(`${name} finish`);
 
@@ -88,7 +89,7 @@ try {
     await page.getByRole('link', { name: 'Open the Memory Book' }).click(); await page.getByRole('heading', { name: /Memory Book/ }).first().waitFor();
     await page.getByText('For family and care staff').waitFor();
     const book = await page.locator('main').innerText();
-    assert.match(book, /eleni's memory book/i); assert.match(book, /their cultural profile/i); assert.match(book, /laiko|greek/i); assert.match(book, /Danced to this at their wedding/); assert.match(book, /Worked\s+Eleni smiled/i); assert.match(book, /Avoid\s+.*upset Eleni/is);
+    assert.match(book, /eleni's memory book/i); assert.match(book, /their cultural profile/i); assert.match(book, /how it was chosen/i); assert.match(book, /laiko|greek/i); assert.match(book, /Danced to this at their wedding/); assert.match(book, /Worked\s+Eleni smiled/i); assert.match(book, /Avoid\s+.*upset Eleni/is);
     assert.ok(await page.getByRole('button', { name: 'Print or save as PDF' }).count() === 1);
     assert.ok(await page.locator('a[href^="https://open.spotify.com/search/"]').count() >= 4, `${name}: every song links onward, once, in Keep playing`);
     await guards(page, `${name} book`); if (shots) await page.screenshot({ path: `${shots}/${name}-book.png`, fullPage: true });

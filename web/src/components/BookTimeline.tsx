@@ -1,10 +1,11 @@
 import type { Item } from '../lib/types';
-import { AXIS, WINDOW, ageSpan, assignLanes } from '../lib/era';
+import { AXIS, WINDOW, ageSpan, assignLanes, stockOf } from '../lib/era';
 
-const stock = (item: Item) => `stock-${item.kind === 'song' ? 'red' : item.kind === 'film' ? 'cobalt' : 'green'}`;
+const stock = (item: Item) => `stock-${stockOf(item.kind)}`;
 // The whole session on one line. Dated songs, films and shows are points at the age they belong to;
 // artists known only by their active years are drawn as bars across those years, never as a made-up point.
-export function BookTimeline({ born, items }: { born: number; items: Item[] }) {
+export function BookTimeline({ born, items: all }: { born: number; items: Item[] }) {
+  const items = all.filter(i => !i.timeless);
   const dated = items.filter(i => { const [a, b] = ageSpan(i); return b - a <= 1; }), spans = items.filter(i => !dated.includes(i));
   const lane = assignLanes(dated.map(i => ageSpan(i)[0]), 2.6), rows = Math.max(1, ...lane.map(l => l + 1)), ROW = 34, BAR = 22;
   const pct = (age: number) => `${(age / AXIS) * 100}%`;

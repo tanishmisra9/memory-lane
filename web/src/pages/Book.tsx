@@ -4,7 +4,7 @@ import { BlurFade } from '../components/BlurFade';
 import { BookTimeline } from '../components/BookTimeline';
 import { Cover } from '../components/AlbumCard';
 import { deleteSession, getSession } from '../lib/api';
-import { ageSpan, apple, label, spotify } from '../lib/era';
+import { ageSpan, apple, label, spotify, stockOf } from '../lib/era';
 import { ApiError, playable, type Item, type SessionView } from '../lib/types';
 import { Gone } from './Gone';
 
@@ -23,7 +23,7 @@ export function Book() {
   const plan = playable(s.plan), who = s.name || 'They', owner = s.name ? `${s.name}'s` : 'A';
   const by = (r: Item['reaction']) => plan.filter(i => i.reaction === r);
   const smiled = by('smiled'), okay = by('neutral'), pending = plan.filter(i => !i.reaction), tried = plan.length - pending.length;
-  const ordered = [...plan].sort((a, b) => (ageSpan(a)[0] + ageSpan(a)[1]) - (ageSpan(b)[0] + ageSpan(b)[1]));
+  const ordered = [...plan].sort((a, b) => (a.timeless ? 1e3 : ageSpan(a)[0] + ageSpan(a)[1]) - (b.timeless ? 1e3 : ageSpan(b)[0] + ageSpan(b)[1]));
   const songs = ordered.filter(i => i.kind === 'song');
   const rows: [string, string][] = [];
   if (smiled.length) rows.push(['Worked', `${who} smiled at ${sentence(names(smiled))}.`]);
@@ -71,6 +71,12 @@ export function Book() {
             <p className="hint" style={{ marginTop: 16 }}>Read by Qloo's taste graph from the artists you named. Nothing about heritage was asked.</p>
           </section>)}
 
+        <section aria-labelledby="how" className="card" style={{ marginTop: 24, padding: 'clamp(20px, 4vw, 32px)' }}>
+          <h2 id="how" style={{ fontSize: 36 }}>How it was chosen</h2>
+          <p style={{ marginTop: 12, maxWidth: '70ch' }}>{s.agent === 'llm' && s.why ? s.why : 'The closest result from Qloo in every domain, ranked by cultural closeness to the artists you named.'}</p>
+          <p className="hint" style={{ marginTop: 12 }}>{s.agent === 'llm' ? 'An AI agent chose from what Qloo returned, using only that evidence. Every song was then checked in code for their years, familiarity and gentle themes.' : 'The agent was not used for this one; the ranking above was.'}</p>
+        </section>
+
         <h2 style={{ marginTop: 56, fontSize: 36 }}>Their years, {s.born + 10} to {s.born + 30}</h2>
         <div className="card" style={{ marginTop: 16, padding: '24px 12px 12px' }}><BookTimeline born={s.born} items={ordered} /></div>
 
@@ -85,7 +91,7 @@ export function Book() {
                     {item.reaction && <p className="label" style={{ whiteSpace: 'nowrap' }}>{WORD[item.reaction]}</p>}
                   </div>
                   {item.by && <p style={{ fontWeight: 600 }}>{item.by}</p>}
-                  <p className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span className={`code stock-${item.kind === 'song' ? 'red' : item.kind === 'film' ? 'cobalt' : 'green'}`} style={{ minWidth: 30, height: 24, fontSize: 15 }}>{item.code}</span>{label(item, s.name)}</p>
+                  <p className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span className={`code stock-${stockOf(item.kind)}`} style={{ minWidth: 30, height: 24, fontSize: 15 }}>{item.code}</span>{label(item, s.name)}</p>
                   {item.note && <blockquote style={{ margin: '10px 0 0', padding: '4px 14px', borderLeft: '1px solid var(--color-ink)', fontStyle: 'italic' }}>"{item.note}"</blockquote>}
                 </div>
               </article>

@@ -3,7 +3,7 @@ import { eraWindow, inWindow, safety, type Artist, type Culture, type CulturalPr
 const BASE = 'https://hackathon.api.qloo.com';
 export type Cache = { get(key: string): Promise<unknown | null>; set(key: string, value: unknown, ttlMs: number): Promise<void> };
 export type Step = { text: string; kept?: number; dropped?: number };
-type Raw = { entity_id?: string; name?: string; tags?: Array<{ name?: string; type?: string }>; properties?: Record<string, unknown>; query?: { explainability?: Record<string, Array<{ entity_id: string; score: number }>> } };
+export type Raw = { entity_id?: string; name?: string; tags?: Array<{ name?: string; type?: string }>; properties?: Record<string, unknown>; query?: { explainability?: Record<string, Array<{ entity_id: string; score: number }>> } };
 
 const memory = new Map<string, { value: unknown; expires: number }>();
 export const memoryCache: Cache = {
@@ -26,11 +26,11 @@ export async function qlooGet(path: string, params: Record<string, string>, key:
   }
 }
 
-const list = (data: unknown): Raw[] => { const r = (data as { results?: unknown })?.results; const items = Array.isArray(r) ? r : (r as { entities?: unknown })?.entities; return Array.isArray(items) ? items as Raw[] : []; };
+export const list = (data: unknown): Raw[] => { const r = (data as { results?: unknown })?.results; const items = Array.isArray(r) ? r : (r as { entities?: unknown })?.entities; return Array.isArray(items) ? items as Raw[] : []; };
 // Qloo uses null for unknown, and Number(null) is 0, which would read an active artist's end_year as 0.
-const one = (value: unknown): number | undefined => { const v = Array.isArray(value) ? value[0] : value; if (v === null || v === undefined || v === '') return undefined; const n = Number(v); return Number.isFinite(n) ? n : undefined; };
-const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
-const image = (value: unknown): string | undefined => { const url = (value as { url?: unknown })?.url; return typeof url === 'string' ? url : undefined; };
+export const one = (value: unknown): number | undefined => { const v = Array.isArray(value) ? value[0] : value; if (v === null || v === undefined || v === '') return undefined; const n = Number(v); return Number.isFinite(n) ? n : undefined; };
+export const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+export const image = (value: unknown): string | undefined => { const url = (value as { url?: unknown })?.url; return typeof url === 'string' ? url : undefined; };
 export const norm = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 const short = (value: unknown, max: number): string | undefined => typeof value === 'string' && value.trim() ? (value.length > max ? `${value.slice(0, max).replace(/\s+\S*$/, '')}…` : value.trim()) : undefined;
