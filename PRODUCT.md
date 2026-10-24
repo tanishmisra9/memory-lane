@@ -6,7 +6,7 @@ A family caregiver sitting beside a parent or partner with dementia, with a phon
 
 ## Purpose
 
-Memory Lane builds a short reminiscence session from the years someone was young: songs, films and shows from roughly ages 10 to 30, in their own culture, found with Qloo from artists they loved. The caregiver plays it, records how each item landed, and the plan adapts for that person.
+Memory Lane builds a short reminiscence session from the years someone was young: songs, films and shows from roughly ages 10 to 30, in their own culture, found with Qloo from artists they loved. The caregiver plays it one song at a time, records how each landed and what it brought up, and keeps a Memory Book: what worked, what to avoid, the words they wrote, and every item placed on a timeline of the person's years.
 
 ## Positioning
 
@@ -25,5 +25,6 @@ Memory Lane builds a short reminiscence session from the years someone was young
 - Product name: Memory Lane.
 - Direct, sparse copy with no em dashes. One idea per viewport.
 - Square corners everywhere. No pills.
-- A jukebox title-strip wall: warm black cabinet, off-white strips, stock-color code blocks.
-- Never clinical, never sepia nostalgia, never a generic dark music grid, never an agent dashboard up front.
+- Paper and ink, with Telogify's hard offset shadows; a jukebox title-strip vocabulary (selection codes, stock colors); a light default and a night theme.
+- Each screen holds one idea. Landing, setup, player and Memory Book are separate pages.
+- Never clinical, never sepia nostalgia, never a generic dark music grid, never an agent dashboard. The agent's real work appears as a live trace and in the Why drawer, not as chrome.

@@ -45,7 +45,7 @@ export function Setup() {
       <p className="label" aria-live="polite">Step {step + 1} of 3</p>
       <AnimatePresence mode="wait" initial={false}>
         <m.form key={step} onSubmit={next} noValidate initial={reduce ? false : { opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? undefined : { opacity: 0, x: -40 }} transition={spring} style={{ marginTop: 16 }}>
-          <h1 style={{ fontSize: 'clamp(44px, 9vw, 88px)', lineHeight: .95 }} tabIndex={-1} ref={el => el?.focus({ preventScroll: true })}>{titles[step]}</h1>
+          <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }} tabIndex={-1} ref={el => el?.focus({ preventScroll: true })}>{titles[step]}</h1>
           {step === 0 && <NameStep value={name} onChange={setName} />}
           {step === 1 && <BornStep value={born} onChange={setBorn} valid={bornValid} />}
           {step === 2 && <ArtistsStep anchors={anchors} onChange={setAnchors} born={bornValid ? bornNumber : undefined} />}
@@ -152,7 +152,7 @@ function Tuning({ phase, steps, error, onRetry, onBack }: { phase: Phase; steps:
         <div role="status" aria-live="polite" style={{ marginTop: 16 }}>
           <AnimatePresence mode="popLayout" initial={false}>
             <m.h1 key={current?.text ?? 'start'} initial={reduce ? false : { opacity: 0, y: 24, filter: 'blur(8px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} exit={reduce ? undefined : { opacity: 0, y: -24 }} transition={spring}
-              style={{ fontSize: 'clamp(36px, 7vw, 68px)', lineHeight: 1, minHeight: '2.2em' }}>{current?.text ?? 'Starting'}</m.h1>
+              style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: 1, minHeight: '2.2em' }}>{current?.text ?? 'Starting'}</m.h1>
           </AnimatePresence>
           {current?.kept !== undefined && <p style={{ marginTop: 8, font: '600 22px var(--font-body)' }}>Kept {current.kept}{current.dropped ? `, set aside ${current.dropped}` : ''}.</p>}
           <ol style={{ marginTop: 32, padding: 0, listStyle: 'none', display: 'grid', gap: 6, color: 'var(--color-muted)' }}>

@@ -16,11 +16,17 @@
   <img src="https://img.shields.io/badge/powered%20by-Qloo-c62d26" alt="Powered by Qloo">
 </p>
 
-**Try it: https://memory-lane.encore-tanishmisra9.workers.dev** (no login, one tap on an example).
+**Try it: https://memory-lane.encore-tanishmisra9.workers.dev** (no login; "Greece, 1947" on the landing page is a one-tap example).
 
-Memory Lane helps a family caregiver run a short music-and-memories session with someone who has dementia. Enter their birth year and one to three artists they loved. It finds songs, films and shows from when they were about 10 to 30, in their own culture, plays 30-second previews, and adapts as the caregiver taps how each one landed.
+Memory Lane helps a family caregiver run a short music-and-memories session with someone who has dementia, then keep what came of it.
 
-Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/). It started as a Discord planner (still on the [`v1-discord`](https://github.com/tanishmisra9/memory-lane/tree/v1-discord) branch) and was rebuilt as a web app that judges can use directly.
+1. **Landing.** One idea, one button.
+2. **Setup.** Three short questions: a first name (optional), the year they were born, and one to three artists they loved (autocomplete from Qloo, or a starter shelf for 12 countries).
+3. **Tuning.** The real agent trace streams in live: what it asked Qloo, and how many artists it kept and set aside.
+4. **Player.** One song at a time, full screen: cover art, an era timeline that shows where the song sits in their life, a 30-second preview, and Smiled / Okay / Upset. Smiled and Okay open a one-line note. Upset swaps the song for another. "Why this" shows where it came from and what was checked.
+5. **Memory Book.** What comes out: what worked, what to avoid and what is neutral for family and care staff, the words you wrote, every song on one timeline of their years, and links to keep playing in Spotify or Apple Music. Print it, share the link, or delete it.
+
+Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/). It started as a Discord planner (still on the [`v1-discord`](https://github.com/tanishmisra9/memory-lane/tree/v1-discord) branch) and was rebuilt as a web app judges can use directly.
 
 ## How it works
 
@@ -56,23 +62,25 @@ No language model is involved anywhere. The agent loop queries Qloo, filters by 
 npm install
 echo "QLOO_API_KEY=<hackathon key>" > .dev.vars
 npx wrangler d1 migrations apply memory-lane --local
-npm run dev            # http://localhost:8787
+npm run build          # web/ -> dist/
+npm run dev            # Worker + built app at http://localhost:8787
+npm run web            # optional: Vite dev server on :5173, proxying /api to :8787
 ```
 
 ```sh
-npm run check          # TypeScript
-npm test               # 19 unit tests, offline
-npm run e2e            # real browser, desktop and mobile, against a running server
+npm run check          # TypeScript for the Worker and the web app
+npm test               # 27 unit tests, offline
+npm run e2e            # the whole product in real Chrome, desktop and mobile
 npm run eval           # three-arm evaluation on eight personas (live Qloo)
 ```
 
-`BASE_URL=https://memory-lane.encore-tanishmisra9.workers.dev npm run e2e` runs the same browser test against production. It checks audio on every song strip, no horizontal scroll, no rounded or pill shapes, 44px touch targets, upset and smiled reactions, the printable summary, deletion, and the form's error paths.
+`BASE_URL=https://memory-lane.encore-tanishmisra9.workers.dev npm run e2e` runs the same test against production. It walks landing, setup, the live trace, the player (audio plays, the progress moves), keyboard control, the Why drawer, an Upset swap, a note, the finish screen, the Memory Book, reload, and delete. It also fails on any rounded shape above 8px, any control under 44px tall, sideways scrolling, or a console error. It uses installed Chrome when present so audio is real.
 
-Deploy with `npx wrangler d1 create memory-lane`, put the id in `wrangler.jsonc`, run `npx wrangler d1 migrations apply memory-lane --remote`, `npx wrangler secret put QLOO_API_KEY`, then `npm run deploy`.
+Stack: a Cloudflare Worker (`src/`) with D1, and a Vite + React + framer-motion front end (`web/`) served as static assets with `/api/*` going to the Worker first. Deploy with `npx wrangler d1 create memory-lane`, put the id in `wrangler.jsonc`, `npx wrangler d1 migrations apply memory-lane --remote`, `npx wrangler secret put QLOO_API_KEY`, `npm run build && npm run deploy`.
 
 ## Privacy
 
-A birth year, up to three artist names and an optional first name. No health data, no accounts, no location. Sessions expire after 30 days and can be deleted from the page. Qloo responses are cached privately on the server and are not stored in this repository.
+A birth year, up to three artist names, an optional first name, and the one-line notes you choose to write. No health data, no accounts, no location. Sessions expire after 30 days and can be deleted from the Memory Book. Qloo responses are cached privately on the server and are not stored in this repository.
 
 ## License
 

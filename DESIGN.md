@@ -1,36 +1,54 @@
 ---
 name: Memory Lane
-description: A jukebox title-strip wall for caregiver reminiscence sessions.
+description: Paper-and-ink reminiscence sessions: a jukebox title-strip world with hard offset shadows.
 colors:
-  cabinet: "#17120f"
-  cabinet-line: "#3a3027"
-  paper: "#f3ede2"
-  paper-muted: "#b3a898"
-  strip-card: "#faf6ec"
+  paper: "#fffdd0"
+  surface: "#fffef0"
   ink: "#14110e"
-  ink-soft: "#5d544a"
+  muted-ink: "#5d544a"
+  action-mustard: "#e9b21a"
   stock-red: "#c62d26"
-  stock-mustard: "#e9b21a"
   stock-green: "#1a7a43"
   stock-cobalt: "#2858c8"
   on-stock-white: "#ffffff"
-  strip-hover: "#ece5d4"
-  placeholder: "#6b6359"
+  night: "#17120f"
+  night-surface: "#221b16"
+  night-ink: "#f3ede2"
+  night-muted: "#b3a898"
+  night-shadow: "#000000"
   error-soft: "#ffb4a8"
+  print-white: "#ffffff"
   print-black: "#000000"
 typography:
   display:
     fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "clamp(38px, 9vw, 60px)"
+    fontSize: "clamp(42px, 6.4vw, 92px)"
     fontWeight: 700
-    lineHeight: 1
-    letterSpacing: "0.005em"
-  strip-title:
+    lineHeight: 0.94
+  headline:
     fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "26px"
+    fontSize: "clamp(40px, 8vw, 72px)"
+    fontWeight: 700
+    lineHeight: 1.02
+  section:
+    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
+    fontSize: "36px"
+    fontWeight: 700
+    lineHeight: 1.02
+  title:
+    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
+    fontSize: "28px"
     fontWeight: 700
     lineHeight: 1.05
-    letterSpacing: "0.01em"
+  input-large:
+    fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
+    fontSize: "44px"
+    fontWeight: 700
+  lede:
+    fontFamily: "Barlow, system-ui, sans-serif"
+    fontSize: "20px"
+    fontWeight: 400
+    lineHeight: 1.55
   body:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "18px"
@@ -41,154 +59,151 @@ typography:
     fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.5
-  reaction:
-    fontFamily: "Barlow, system-ui, sans-serif"
-    fontSize: "16px"
-    fontWeight: 600
   caption:
     fontFamily: "Barlow, system-ui, sans-serif"
     fontSize: "13px"
-    fontWeight: 400
+    fontWeight: 600
   button:
     fontFamily: "Barlow Condensed, Arial Narrow, sans-serif"
-    fontSize: "20px"
+    fontSize: "22px"
     fontWeight: 700
     letterSpacing: "0.06em"
 rounded:
   square: "2px"
 spacing:
-  sm: "8px"
+  xs: "8px"
+  sm: "12px"
   md: "16px"
   lg: "24px"
-  xl: "56px"
+  xl: "40px"
 components:
   button-primary:
-    backgroundColor: "{colors.stock-mustard}"
+    backgroundColor: "{colors.action-mustard}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "12px 22px"
+    padding: "10px 24px"
     height: "52px"
-  button-primary-hover:
-    backgroundColor: "{colors.paper}"
-  preset:
-    backgroundColor: "{colors.cabinet}"
-    textColor: "{colors.paper}"
+  button-quiet:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "8px 14px"
     height: "44px"
-  strip:
-    backgroundColor: "{colors.strip-card}"
+  card:
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
   input:
-    backgroundColor: "{colors.strip-card}"
+    backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "10px 12px"
-    height: "52px"
+    padding: "10px 14px"
+    height: "56px"
 ---
 
 # Design System: Memory Lane
 
 ## Overview
 
-**Creative North Star: "The Rockola"**
+**Creative North Star: "The Title Strip on Paper"**
 
-A jukebox title-strip wall. Each song is a printed card with a selection code, the title in condensed capitals, the artist, and one line of meta, set on a warm black cabinet. The strips carry the color; the cabinet recedes. It is built for a caregiver with a phone beside someone they love, so it is large, calm and quick to read, and it says one thing per screen.
+A jukebox title strip, printed on paper stock and laid on a cream desk: ink outlines, hard offset shadows, three printing inks, one action color. Every screen holds one idea and leaves the rest empty. The look comes from the Telogify system (paper, ink, offset shadows, springs) with the Rockola's condensed capitals and stock colors, and from the Portfolio's outlined display type.
 
-It refuses the soft-focus caregiving app, the dark music-grid app, and the agent dashboard. There is no sepia, no photo wash, no pill or rounded control, and no log panel up front.
+It refuses the clinical caregiving app, the dark music grid, the sepia scrapbook, and the agent dashboard. There are no pills, no gradients, no emoji, and no filler sections.
 
 **Key Characteristics:**
-- Strips are the only repeating unit; everything else is plain type on the cabinet.
-- Stock color (red, green, cobalt) belongs to the code block, the play block and the playing strip's progress bar. Mustard is only the action color.
-- Square corners, thin ink rules, no shadows.
-- Sparse: generous empty space, no filler sections.
+- Paper ground, ink lines, a 4px hard offset shadow that lifts toward the cursor.
+- Square corners everywhere (2px).
+- Stock colors mean something: red is a song Qloo found, cobalt is a film or a song they named, green is a show. Mustard is only the action.
+- Light by default, with an espresso night theme and a toggle that remembers itself.
+- Motion is a spring (stiffness 120, damping 20) and a blur-fade reveal, and switches off for reduced motion.
 
 ## Colors
 
-A committed palette: one warm black field, off-white strips, three printing stocks, and mustard reserved for the action.
+A committed paper-and-ink palette with three printing stocks and one action color.
 
 ### Primary
-- **Mustard Stock** (#e9b21a): the single action color (primary button, focus ring, playing-strip ring, headline emphasis). It is never a strip stock.
+- **Action Mustard** (#e9b21a): the one action color: primary button, focus ring, the era window band, text selection.
 
 ### Secondary
-- **Red Stock** (#c62d26), **Green Stock** (#1a7a43), **Cobalt Stock** (#2858c8): code blocks and play blocks. Color is meaning, with a one-line key under the wall heading: cobalt is a song the caregiver named, red a song Qloo found, green a film or show. White text on red, green and cobalt; ink on mustard.
+- **Stock Red** (#c62d26), **Stock Green** (#1a7a43), **Stock Cobalt** (#2858c8): code blocks, the player marker, the queue's current item, progress. White text sits on them (**On-stock White** #ffffff, 5.4:1 or better).
 
 ### Neutral
-- **Cabinet Black** (#17120f): the page field. **Cabinet Line** (#3a3027): the preset outlines, the blank-strip outline and the footer rule.
-- **Paper** (#f3ede2) and **Paper Muted** (#b3a898): text on the cabinet (15.9:1 and 7.9:1).
-- **Strip Card** (#faf6ec), **Ink** (#14110e), **Soft Ink** (#5d544a): the strip and form surfaces (17.4:1 and 6.9:1). **Strip Hover** (#ece5d4) tints a reaction button on hover; **Placeholder** (#6b6359) is the field hint; **On-stock White** (#ffffff) is text on red, green and cobalt; **Print Black** (#000000) is used only in the print stylesheet.
-- **Error Soft** (#ffb4a8): error text on the cabinet (10.9:1).
+- **Paper** (#fffdd0) is the page; **Surface** (#fffef0) is the card and field; **Ink** (#14110e) is text, borders and the shadow; **Muted Ink** (#5d544a) is secondary text (6.9:1 on Surface).
+- Night theme: **Night** (#17120f) page, **Night Surface** (#221b16), **Night Ink** (#f3ede2), **Night Muted** (#b3a898), **Night Shadow** (#000000).
+- **Error Soft** (#ffb4a8) is error text on night; errors are Stock Red on paper.
+- **Print White** (#ffffff) and **Print Black** (#000000) appear only in the print stylesheet.
 
 ### Named Rules
-**The Stock Rule.** A stock color appears only on a code block, a play block, or the playing strip's progress bar. Never on body text or the backgrounds of regions. Mustard is the action color and is never a stock.
-**The Two Surfaces Rule.** Cabinet black or strip card, nothing between. No gray panels.
+**The One Action Rule.** Mustard marks the one thing to do. It is never a stock color and never decoration.
+**The Stock Rule.** A stock color belongs to a code block, a marker, or a progress fill. Never body text, never a region background.
 
 ## Typography
 
 **Display Font:** Barlow Condensed (Arial Narrow fallback)
 **Body Font:** Barlow (system-ui fallback)
 
-**Character:** Condensed capitals read like a printed jukebox label; the sans body stays plain and large for older eyes.
+**Character:** Condensed capitals read like a printed title; the sans body is large and plain for older eyes. Display type on the landing is outlined (Portfolio's ghost heading) for the first sentence and solid for the second.
 
 ### Hierarchy
-- **Display** (700, clamp 38 to 60px, 1.0): the thesis headline; one yellow line for emphasis.
-- **Headline** (700, 28px, 1.1, uppercase): section titles ("Example, born 1946", "Make one").
-- **Title** (700, 26px, 1.05, uppercase): a song or film on a strip.
-- **Note** (400, 15px, 1.5): strip meta, the color key, helper text under fields.
-- **Reaction** (600, 16px): Smiled, Okay, Upset.
-- **Caption** (400, 13px): the "No preview" cell only.
-- **Body** (400, 18px, 1.55): copy; the lede is 20px at about 40 characters per line.
-- **Label** (600 Barlow Condensed, 18 to 20px, 0.06em, uppercase): buttons and presets.
+- **Display** (700, clamp 42 to 92px, 0.94): the landing headline.
+- **Headline** (700, clamp 40 to 72px, 1.02): the title of a screen or a song.
+- **Section** (700, 36px): sections of the Memory Book and the drawer.
+- **Title** (700, 28px): a song or film inside the book. **Input Large** (700, 44px): the birth year.
+- **Lede** (400, 20px): the sentence under a headline; about 40 characters wide.
+- **Body** (400, 18px, 1.55): copy and fields. **Note** (15px): hints and the footer. **Caption** (600, 13px): timeline years and key hints.
+- **Button** (700 condensed, 22px, 0.06em, uppercase).
 
 ### Named Rules
-**The One Voice Rule.** Condensed capitals are for titles, buttons, labels and the printed status line on a blank strip. Running text is never condensed or uppercase.
+**The One Voice Rule.** Condensed capitals are for titles, buttons and labels. Running text is never condensed or uppercase.
 
 ## Layout
 
-Single column on phones. At 960px the page splits 5 to 7: the thesis and action stay sticky on the left, the wall (example presets, strips, prompts) fills the right, so the first screen already shows songs. The form sits below, left-aligned at 680px, with generous space around it (96px above). Strips stack with 12px gaps; spacing runs on 4, 8, 12, 16, 20, 24, 28, 32, 56, 64 and 96. Headings have more space above (24px) than below (4px). Every control is at least 44px tall with 8px between targets, and the page never scrolls sideways.
+A 1180px column with 20px gutters. The player is two columns above about 700px (artwork, then the title, era timeline, transport and reactions) and one column below. The landing splits 7 to 5 at 960px, with the one action and the era picture both visible on the first screen. Setup is one question per screen at 760px. Spacing runs on 8, 12, 16, 24, 40; headings take more space above than below. Every control is at least 44px tall, and nothing scrolls sideways.
 
 ## Elevation & Depth
 
-Flat. Depth is carried by tonal separation: off-white strips on the black cabinet, and a 1px ink rule. There are no shadows. A playing strip gets a 3px mustard ring.
+Hard offset shadows with no blur: 4px at rest, 6px on hover (the card lifts 2px toward the cursor), 1px when pressed. The shadow color is Ink by day and Night Shadow by night. The drawer is the only overlay: a flat card with a dimmed scrim. A faint paper-grain texture sits over the page (opacity 0.04 by day, 0.07 by night).
 
 ## Shapes
 
-Square. Every control, strip and field uses a 2px radius; nothing in the build exceeds it, and the browser test fails on any radius above 8px. Strips are rectangles with a full-height code block at the left and a full-height play block at the right, joined by a 1px ink rule.
+Square. Every card, button, field and marker uses a 2px radius; the browser test fails on anything above 8px. Borders are 1.5px Ink. The only circles are none: even the artwork is a square.
 
 ## Components
 
 ### Buttons
-- **Shape:** square (2px).
-- **Primary:** mustard fill, ink text, condensed capitals, 52px tall, padding 12px 22px.
-- **Hover / Focus:** hover turns the fill paper; focus is a 3px mustard outline offset 3px.
-- **Link button:** underlined muted text for low-weight actions (delete).
+- **Primary:** Action Mustard, Ink border and text, 52px tall, offset shadow, lifts on hover, presses in on active.
+- **Quiet:** Surface fill, the same border and shadow, 44px tall. **Text button:** underlined muted text for low-weight actions.
 
-### Presets
-- Four outlined 1px cabinet-line squares (US, Mexico, Greece, India) in one row, paper text, 44px tall; the selected one is filled paper with ink text.
+### Strip and queue
+- A queue of 8 numbered squares (A1 to B2). The current one fills with its stock color; marked ones carry a colored underline. This is the session's progress, and it is also a control.
 
-### Strip
-- Code block (56px, stock color), text (title, artist, meta), play block (56px, stock color, white or ink glyph). Tapping the strip text, or the React block on films and shows, opens a three-button row (Smiled, Okay, Upset) in text only; the selected reaction fills ink. Press play opens it too.
+### Player
+- Artwork with a cursor-following tilt, an era timeline (ages 0 to 40, the 10-to-30 window shaded, a red marker that springs to the song's age), a 88px square play button, a scrubbable progress line, and three reaction buttons with number shortcuts. Reactions Smiled and Okay open a one-line note.
+
+### Drawer ("Why this")
+- A right-hand card that traps focus, dims and inerts the page, and closes on Escape. It lists where the song came from, why it is from their youth, why it is gentle and familiar, and what could not be checked.
+
+### Memory Book
+- A care-staff card (worked, neutral, avoid, not tried), one timeline of every item (points for dated songs, bars for artists known only by active years), then one card per item with the reaction and the words written.
 
 ### Inputs / Fields
-- **Style:** strip-card fill, 2px muted border, 52px tall, ink text.
-- **Focus:** 3px mustard outline and mustard border.
-- **Error:** soft red-tint text (#ffb4a8, 10.9:1) in a live region under the form.
+- Surface fill, 1.5px Ink border, 56px tall; focus adds a 3px Action Mustard offset shadow. Errors read in Stock Red.
 
 ## Do's and Don'ts
 
 ### Do:
+- **Do** keep each screen to one idea and leave space.
 - **Do** keep every control at least 44px tall and every text pair at least 4.5:1.
-- **Do** give each screen one idea and let empty space carry it.
-- **Do** label every reaction with text; there are no face icons.
-- **Do** respect reduced motion; the only motion is a 220ms strip entrance, played once per build, not on every reaction.
+- **Do** show real data: a bar for what is only known as a span, a point for what is dated.
+- **Do** switch motion off for reduced motion.
 
 ### Don't:
-- **Don't** use pills, circles or any radius above 2px.
-- **Don't** add shadows, gradients, glass, sepia or photographic washes.
-- **Don't** use emoji or face icons; the only drawn marks are play, pause, and the chevron on "How it chose".
-- **Don't** repeat a fact on every strip; per-item explanations live behind "How it chose".
+- **Don't** use pills, circles, gradients, glass or emoji.
+- **Don't** use mustard as anything but the action.
+- **Don't** repeat a fact on every card.
+- **Don't** invent a year for a song Qloo only knows by an artist's active years.
 
 ## Not canonized (defects the build carries)
 
-- The zero-offset mustard ring on the playing strip works as a focus-like halo rather than depth; do not reuse it as decoration.
+- The paper-grain overlay and the offset shadow come from Telogify; the craft floor would refuse offset shadows outside this world.
+- The type ramp has more steps than a system needs (13 to 92px). It is recorded as built, not recommended.

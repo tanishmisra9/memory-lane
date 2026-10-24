@@ -90,7 +90,7 @@ export function Player() {
       <AnimatePresence mode="wait" custom={dir.current} initial={false}>
         {finished ? (
           <m.section key="done" className="card" initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={spring} style={{ marginTop: 32, padding: 'clamp(24px, 6vw, 56px)' }}>
-            <h1 style={{ fontSize: 'clamp(40px, 9vw, 84px)', lineHeight: .95 }}>Your Memory Book is ready</h1>
+            <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }}>Your Memory Book is ready</h1>
             <p style={{ marginTop: 16, maxWidth: '44ch' }}>{plan.filter(i => i.reaction === 'smiled').length} songs and shows made them smile. It lists what worked, what to avoid, and the words you wrote, ready to print or share.</p>
             <div style={{ marginTop: 24, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
               <Link className="btn" to={`/book/${session.id}`}>Open the Memory Book</Link>
@@ -105,7 +105,7 @@ export function Player() {
             <div style={{ display: 'grid', gap: 24 }}>
               <div>
                 <span className={`code stock-${item.kind === 'song' ? 'red' : item.kind === 'film' ? 'cobalt' : 'green'}`} aria-hidden="true">{item.code}</span>
-                <h1 style={{ marginTop: 12, fontSize: 'clamp(40px, 7vw, 72px)', lineHeight: .95 }}>{item.title}</h1>
+                <h1 style={{ marginTop: 12, fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }}>{item.title}</h1>
                 {item.by && <p style={{ marginTop: 8, font: '600 24px var(--font-body)' }}>{item.by}</p>}
                 <p className="hint" style={{ marginTop: 4 }}>{label(item, name)}</p>
               </div>

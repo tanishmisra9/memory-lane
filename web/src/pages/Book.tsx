@@ -27,7 +27,7 @@ export function Book() {
   return (
     <main id="app-main" className="wrap" style={{ paddingTop: 16, paddingBottom: 96, maxWidth: 900 }}>
       <BlurFade>
-        <h1 style={{ fontSize: 'clamp(44px, 9vw, 96px)', lineHeight: .92 }}>{owner} Memory Book</h1>
+        <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .92 }}>{owner} Memory Book</h1>
         <p style={{ marginTop: 12, fontSize: 20 }}>Born {s.born}. Music, films and shows from {s.born + 10} to {s.born + 30}, the years that matter most.</p>
       </BlurFade>
       <div className="noprint" style={{ marginTop: 20, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
