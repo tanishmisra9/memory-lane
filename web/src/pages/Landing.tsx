@@ -46,7 +46,7 @@ export function Landing() {
 
       <BlurFade as="section" className="">
         <p style={{ marginTop: 48, maxWidth: '58ch', textWrap: 'pretty' }}>
-          A plain "popular music" list fits a person's youth 17% of the time, and 83% of its top picks carry an upsetting lyrical theme. Memory Lane builds from their own years, in their own culture, and screens every song.{' '}
+          A plain "popular music" list fits a person's youth 17% of the time, and 83% of its top picks carry an upsetting lyrical theme. Memory Lane builds from their own years, in their own culture, and screens every song. Qloo reads that culture from the artists you name: the scenes they belong to, who shaped them, and who sits close to whom. Nothing about heritage is asked.{' '}
           <a href="https://github.com/tanishmisra9/memory-lane/blob/master/docs/evaluation.md">How we measured it</a>.
         </p>
       </BlurFade>

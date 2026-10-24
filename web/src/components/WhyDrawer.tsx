@@ -15,6 +15,17 @@ const lines = (item: Item, born: number): { head: string; body: string }[] => {
   } else {
     out.push({ head: 'Where it came from', body: `Qloo returned this ${item.kind} near the artists, released ${item.year}, when they were ${item.age}. Of the in-window results, the most widely known was chosen.` });
   }
+  const c = item.culture;
+  if (c) {
+    const bits: string[] = [];
+    if (c.scene.length) bits.push(`Scene: ${c.scene.join(', ')}.`);
+    if (c.influences.length) bits.push(`Shaped by ${c.influences.join(', ')}.`);
+    if (c.origin) bits.push(`From ${c.origin}.`);
+    if (c.fans.length) bits.push(`Qloo describes its listeners as ${c.fans.join(', ').toLowerCase()}.`);
+    if (c.impact) bits.push(c.impact);
+    if (bits.length) out.push({ head: 'Their cultural thread', body: bits.join(' ') });
+    if (c.closest.length) out.push({ head: 'Closest to what you named', body: `${c.closest.map(x => `${x.name} ${x.pct}%`).join(', ')}. This is Qloo's own measure of which artist pulled this ${item.kind === 'song' ? 'artist' : item.kind} in.` });
+  }
   out.push({ head: 'Who decided', body: 'Qloo finds the candidates. Plain, tested rules decide what is safe to play. No AI model makes that call.' });
   return out;
 };

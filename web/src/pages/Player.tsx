@@ -109,6 +109,7 @@ export function Player() {
                 <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }}>{item.title}</h1>
                 {item.by && <p style={{ marginTop: 8, font: '600 24px var(--font-body)' }}>{item.by}</p>}
                 <p className="hint" style={{ marginTop: 4 }}>{label(item, name)}</p>
+                {item.culture?.scene.length ? <p style={{ marginTop: 6, fontWeight: 600 }}>{item.culture.scene.join(' · ')}</p> : null}
               </div>
               <div className="p-timeline"><EraTimeline born={session.born} span={span} /></div>
               <Transport audio={audio} canPlay={!!item.previewUrl} onToggle={audio.toggle} onSeek={audio.seek} onPrev={() => go(index - 1)} onNext={() => go(index + 1)} hasPrev={index > 0} hasNext={!last} />

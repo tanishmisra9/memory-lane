@@ -21,6 +21,7 @@ export function Setup() {
     last.current = input; setPhase('tuning'); setSteps([]); setError('');
     try {
       const session = await buildSession(input, s => alive.current && setSteps(prev => [...prev, s]));
+      if (session.culture?.scenes.length) await new Promise(r => setTimeout(r, 1800)); // let the cultural reading land
       if (alive.current) navigate(`/app/${session.id}`, { state: { session }, replace: true });
     } catch (e) { if (alive.current) { setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.'); setPhase('failed'); } }
   }, [navigate]);

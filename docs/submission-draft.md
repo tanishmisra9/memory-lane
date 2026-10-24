@@ -26,7 +26,15 @@ A search for "oldies" returns what was popular for everyone, in one country. A l
 
 ## How Qloo is used, and what breaks without it
 
-Search resolves the artists the caregiver names. Insights returns artists, films and shows near them, across a culture Memory Lane has no list for (the Greek, Mexican, Indian, Brazilian and Jamaican examples need no hand-built data). Without Qloo there is no way to go from "Nana Mouskouri" to Manos Hadjidakis and George Dalaras; the app shows Qloo's failure instead of a generic list.
+Memory Lane never asks about ethnicity, language or heritage. Qloo reads the person's cultural identity from the artists the caregiver names, and every screen shows that reading:
+
+- **Search** resolves the named artists, with an exact-name guard because Qloo's search is fuzzy.
+- **Insights, with explainability** returns artists, films and shows near them across a culture Memory Lane has no list for. Each result carries Qloo's own breakdown of which named artist pulled it in ("closest to Nana Mouskouri 54%, Mikis Theodorakis 46%"), shown in the "Why this" drawer.
+- **Cultural properties** on each artist (genre scenes such as Laiko, Ranchera or Playback Singing; influences; place of origin; Qloo's cultural-impact summary; how its listeners are described) become a **cultural profile** of the person: streamed live while it builds ("Qloo reads their culture as Laiko, Greek Folk, Entehno, shaped by Greek Folk Traditions, Édith Piaf"), shown per song, and printed in the Memory Book for care staff.
+- **Release-year filtering across movies and TV**, ranked by Qloo's affinity, so a Greek listener's film is the one Qloo places closest to Greek artists, not the most famous title.
+- Familiarity (obscurity), lyrical themes and active years from Qloo drive the safety rules.
+
+Without Qloo there is no way to go from "Nana Mouskouri" to Manos Hadjidakis, Laiko and Entehno, or from "Vicente Fernández" to Ranchera, Mariachi and Los Tigres del Norte. The app shows Qloo's failure instead of a generic list.
 
 ## LLM versus code
 

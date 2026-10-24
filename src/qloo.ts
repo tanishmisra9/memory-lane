@@ -1,9 +1,9 @@
-import { eraWindow, inWindow, safety, type Artist, type Media, type Pool } from './engine';
+import { eraWindow, inWindow, safety, type Artist, type Culture, type CulturalProfile, type Media, type Pool } from './engine';
 
 const BASE = 'https://hackathon.api.qloo.com';
 export type Cache = { get(key: string): Promise<unknown | null>; set(key: string, value: unknown, ttlMs: number): Promise<void> };
 export type Step = { text: string; kept?: number; dropped?: number };
-type Raw = { entity_id?: string; name?: string; properties?: Record<string, unknown>; query?: { explainability?: Record<string, Array<{ entity_id: string; score: number }>> } };
+type Raw = { entity_id?: string; name?: string; tags?: Array<{ name?: string; type?: string }>; properties?: Record<string, unknown>; query?: { explainability?: Record<string, Array<{ entity_id: string; score: number }>> } };
 
 const memory = new Map<string, { value: unknown; expires: number }>();
 export const memoryCache: Cache = {
@@ -33,11 +33,25 @@ const strings = (value: unknown): string[] => Array.isArray(value) ? value.filte
 const image = (value: unknown): string | undefined => { const url = (value as { url?: unknown })?.url; return typeof url === 'string' ? url : undefined; };
 export const norm = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
+const short = (value: unknown, max: number): string | undefined => typeof value === 'string' && value.trim() ? (value.length > max ? `${value.slice(0, max).replace(/\s+\S*$/, '')}…` : value.trim()) : undefined;
+// Genre tags name the scene an artist belongs to (Laiko, Bossa Nova); "obscurity" and audience tags are not scenes.
+const scenes = (raw: Raw): string[] => [...new Set((raw.tags ?? []).filter(t => t.name && /:genre:/.test(t.type ?? '')).map(t => t.name!))].slice(0, 3);
+export function cultureOf(raw: Raw, closest: Culture['closest'] = []): Culture {
+  const p = raw.properties || {}, place = typeof p.place_of_birth === 'string' ? p.place_of_birth.split(',').pop()?.trim() : undefined;
+  return { scene: scenes(raw), influences: strings(p.influenced_by).slice(0, 3), origin: place || undefined, impact: short(p.cultural_impact, 220), fans: strings(p.adjectives_for_fans).slice(0, 3), closest };
+}
+// Qloo's explainability says how much each signal artist contributed to a result; turn it into "closest to ..." shares.
+export function closestTo(raw: Raw, names: Map<string, string>): Culture['closest'] {
+  const share = new Map<string, number>();
+  for (const e of Object.values(raw.query?.explainability || {}).flat()) share.set(e.entity_id, (share.get(e.entity_id) ?? 0) + e.score);
+  const total = [...share.values()].reduce((a, b) => a + b, 0);
+  return total ? [...share].map(([id, v]) => ({ name: names.get(id) ?? '', pct: Math.round((v / total) * 100) })).filter(c => c.name).sort((a, b) => b.pct - a.pct).slice(0, 3) : [];
+}
 export function toArtist(raw: Raw): Artist | null {
   const p = raw.properties || {};
   if (!raw.entity_id || !raw.name) return null;
   return { id: raw.entity_id, name: raw.name, start: one(p.start_year), end: one(p.end_year), obscurity: one(p.obscurity_scale), complexity: one(p.complexity_scale),
-    themes: strings(p.lyrical_themes), songs: strings(p.notable_songs).slice(0, 4), genres: strings(p.primary_genres).slice(0, 3), image: image(p.image) };
+    themes: strings(p.lyrical_themes), songs: strings(p.notable_songs).slice(0, 4), genres: strings(p.primary_genres).slice(0, 3), image: image(p.image), culture: cultureOf(raw) };
 }
 export function toMedia(raw: Raw, kind: 'film' | 'show'): Media | null {
   const year = one(raw.properties?.release_year);
@@ -85,8 +99,9 @@ export async function runAgent(input: { born: number; anchors: string[] }, key: 
     let added = 0;
     for (const raw of list(data)) {
       const artist = toArtist(raw); if (!artist || pool.has(artist.id)) continue;
-      const top = Object.values(raw.query?.explainability || {}).flat().sort((a, b) => b.score - a.score)[0];
-      artist.via = top ? names.get(top.entity_id) : undefined;
+      const closest = closestTo(raw, names);
+      artist.via = closest[0]?.name;
+      artist.culture = cultureOf(raw, closest);
       pool.set(artist.id, artist); names.set(artist.id, artist.name); added++;
     }
     const fit = [...pool.values()].filter(a => inWindow(a, input.born)), safe = fit.filter(a => safety(a).safe);
@@ -103,13 +118,28 @@ export async function runAgent(input: { born: number; anchors: string[] }, key: 
   const seeds = [...pool.values()].filter(a => inWindow(a, input.born) && safety(a).safe).slice(0, 5).map(a => a.id);
   const media: Media[] = [];
   for (const [type, kind] of [['movie', 'film'], ['tv_show', 'show']] as const) {
-    const data = await qlooGet('/v2/insights', { 'filter.type': `urn:entity:${type}`, 'signal.interests.entities': [...anchors.map(a => a.id), ...seeds].join(','), 'filter.release_year.min': String(from), 'filter.release_year.max': String(to), take: '12' }, key, cache).catch(() => null);
-    // Of the in-window results with artwork, show the most widely known: a familiar title is safer than an obscure one.
-    const first = list(data).map(raw => toMedia(raw, kind)).filter((m): m is Media => !!m && !!m.image).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))[0];
-    if (first) media.push(first);
+    const data = await qlooGet('/v2/insights', { 'filter.type': `urn:entity:${type}`, 'signal.interests.entities': [...anchors.map(a => a.id), ...seeds].join(','), 'filter.release_year.min': String(from), 'filter.release_year.max': String(to), take: '12', 'feature.explainability': 'true' }, key, cache).catch(() => null);
+    // Qloo returns these in order of cultural closeness to the artists. Take the closest one with artwork, not the most famous:
+    // for a Greek listener that is a Greek film, not a cartoon everyone knows.
+    const rows = list(data), at = rows.findIndex(raw => !!toMedia(raw, kind)?.image), first = at >= 0 ? toMedia(rows[at]!, kind) : null;
+    if (first) media.push({ ...first, closest: closestTo(rows[at]!, names) });
   }
-  say({ text: `Picked films and shows released ${from} to ${to}.`, kept: media.length });
-  return { anchors, unresolved, pool: { artists: [...pool.values()], media }, trace };
+  const fitted = [...pool.values()].filter(a => (inWindow(a, input.born) || a.known) && safety(a).safe);
+  const culture = profileOf(fitted);
+  say({ text: `Picked films and shows released ${from} to ${to}, closest to what you named.`, kept: media.length });
+  if (culture.scenes.length) say({ text: `Qloo reads their culture as ${culture.scenes.join(', ')}${culture.influences.length ? `, shaped by ${culture.influences.join(', ')}` : ''}.` });
+  return { anchors, unresolved, pool: { artists: [...pool.values()], media, culture }, trace };
+}
+
+const top = (values: string[], n: number, drop: Set<string> = new Set()) => {
+  const count = new Map<string, number>();
+  for (const v of values) if (v && !drop.has(norm(v))) count.set(v, (count.get(v) ?? 0) + 1);
+  return [...count].sort((a, b) => b[1] - a[1]).slice(0, n).map(([v]) => v);
+};
+// The scenes, influences and origins that recur across everything Qloo found for this person: their cultural profile, read from the taste graph (nothing is asked about ethnicity).
+export function profileOf(artists: Artist[]): CulturalProfile {
+  const own = new Set(artists.map(a => norm(a.name))), c = artists.flatMap(a => a.culture ? [a.culture] : []);
+  return { scenes: top(c.flatMap(x => x.scene), 3), influences: top(c.flatMap(x => x.influences), 3, own), origins: top(c.flatMap(x => (x.origin && x.origin.length > 3 ? [x.origin] : [])), 3), fans: top(c.flatMap(x => x.fans), 3) };
 }
 
 // iTunes serves artwork at the size in its URL; ask for a big one for the full-screen player.

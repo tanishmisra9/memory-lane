@@ -14,7 +14,7 @@ const dbCache = (db: D1Database): Cache => ({
   async get(key) { const row = await db.prepare('SELECT body FROM qloo_cache WHERE key = ? AND expires_at > ?').bind(key, Date.now()).first<{ body: string }>(); return row ? JSON.parse(row.body) : null; },
   async set(key, value, ttl) { await db.prepare('INSERT OR REPLACE INTO qloo_cache (key, body, expires_at) VALUES (?,?,?)').bind(key, JSON.stringify(value), Date.now() + ttl).run(); },
 });
-const view = (s: Session) => ({ id: s.id, version: s.version, name: s.profile.name, born: s.profile.born, plan: s.plan, prompts: prompts(s.plan, s.profile), trace: s.trace, unresolved: s.unresolved, avoid: s.avoid ?? [] });
+const view = (s: Session) => ({ id: s.id, version: s.version, name: s.profile.name, born: s.profile.born, plan: s.plan, prompts: prompts(s.plan, s.profile), trace: s.trace, unresolved: s.unresolved, avoid: s.avoid ?? [], culture: s.pool.culture });
 
 async function read(db: D1Database, id: string): Promise<Session | null> {
   const row = await db.prepare('SELECT body FROM sessions WHERE id = ? AND expires_at > ?').bind(id, Date.now()).first<{ body: string }>();

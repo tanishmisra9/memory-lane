@@ -95,3 +95,18 @@ test('agent announces each trace line as it happens, in order, matching the retu
     assert.equal(result.pool.artists[0].known?.[0].art, 'https://x/600x600bb.jpg');
   });
 });
+
+test('cultural reading: scenes come from genre tags, influences and origin from properties, closeness from explainability', async () => {
+  const { cultureOf, closestTo, profileOf } = await import('../src/qloo');
+  const raw = { entity_id: 'x', name: 'X', tags: [{ name: 'Laiko', type: 'urn:tag:genre:qloo' }, { name: 'Melodic', type: 'urn:tag:music:qloo' }, { name: 'Laiko', type: 'urn:tag:genre:qloo' }, { name: 'Entehno', type: 'urn:tag:genre:qloo' }], properties: { influenced_by: ['A', 'B', 'C', 'D'], place_of_birth: 'Athens, Attiki, Greece', cultural_impact: 'x'.repeat(300), adjectives_for_fans: ['Loyal', 'Passionate'] }, query: { explainability: { 'signal.interests.entities': [{ entity_id: 'a', score: 0.6 }, { entity_id: 'b', score: 0.4 }] } } };
+  const names = new Map([['a', 'Nana'], ['b', 'Mikis']]);
+  const closest = closestTo(raw, names);
+  assert.deepEqual(closest, [{ name: 'Nana', pct: 60 }, { name: 'Mikis', pct: 40 }]);
+  const c = cultureOf(raw, closest);
+  assert.deepEqual([c.scene, c.influences, c.origin, c.fans], [['Laiko', 'Entehno'], ['A', 'B', 'C'], 'Greece', ['Loyal', 'Passionate']]);
+  assert.ok(c.impact!.length <= 221 && c.impact!.endsWith('…'));
+  assert.deepEqual(closestTo({}, names), [], 'no explainability, no shares');
+  const profile = profileOf([{ id: '1', name: 'One', themes: [], songs: [], genres: [], culture: c }, { id: '2', name: 'Two', themes: [], songs: [], genres: [], culture: { ...c, influences: ['A', 'Two'] } }]);
+  assert.deepEqual([profile.scenes[0], profile.influences[0], profile.origins], ['Laiko', 'A', ['Greece']]);
+  assert.ok(!profile.influences.includes('Two'), 'an artist is not listed as its own influence');
+});

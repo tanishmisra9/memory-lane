@@ -45,6 +45,7 @@ try {
     await page.selectOption('#shelf', 'greece'); await page.getByRole('list', { name: 'Chosen artists' }).waitFor();
     await page.getByRole('button', { name: 'Find their music' }).click();
     await page.getByText(/Looking through Qloo/).waitFor(); // the tuning screen
+    await page.getByText(/Qloo reads their culture as/).waitFor({ timeout: 120000 }); // the cultural reading arrives live
     await page.waitForURL(/\/app\/[a-f0-9-]{36}$/, { timeout: 120000 });
     const id = page.url().split('/').pop(); step(`${name} wizard to player`);
 
@@ -65,6 +66,7 @@ try {
 
     // W opens the drawer; Escape closes it and focus returns.
     await page.keyboard.press('w'); await page.getByRole('dialog').waitFor();
+    assert.match(await page.getByRole('dialog').innerText(), /cultural thread|Closest to what you named/i, `${name}: the drawer shows Qloo's cultural reading`);
     assert.equal(await page.locator('#app-main').getAttribute('inert'), '', `${name}: the page behind the drawer is inert`);
     await page.keyboard.press('Escape'); await page.getByRole('dialog').waitFor({ state: 'detached' }); step(`${name} why drawer`);
 
@@ -86,7 +88,7 @@ try {
     await page.getByRole('link', { name: 'Open the Memory Book' }).click(); await page.getByRole('heading', { name: /Memory Book/ }).first().waitFor();
     await page.getByText('For family and care staff').waitFor();
     const book = await page.locator('main').innerText();
-    assert.match(book, /eleni's memory book/i); assert.match(book, /Danced to this at their wedding/); assert.match(book, /Worked\s+Eleni smiled/i); assert.match(book, /Avoid\s+.*upset Eleni/is);
+    assert.match(book, /eleni's memory book/i); assert.match(book, /their cultural profile/i); assert.match(book, /laiko|greek/i); assert.match(book, /Danced to this at their wedding/); assert.match(book, /Worked\s+Eleni smiled/i); assert.match(book, /Avoid\s+.*upset Eleni/is);
     assert.ok(await page.getByRole('button', { name: 'Print or save as PDF' }).count() === 1);
     assert.ok(await page.locator('a[href^="https://open.spotify.com/search/"]').count() >= 4, `${name}: every song links onward, once, in Keep playing`);
     await guards(page, `${name} book`); if (shots) await page.screenshot({ path: `${shots}/${name}-book.png`, fullPage: true });

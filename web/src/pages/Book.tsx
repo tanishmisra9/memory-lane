@@ -59,6 +59,18 @@ export function Book() {
           <p className="hint" style={{ marginTop: 16 }}>Every song passed a check for upsetting lyrical themes and familiarity. This is an activity record, not medical advice.</p>
         </section>
 
+        {s.culture && (s.culture.scenes.length > 0 || s.culture.influences.length > 0) && (
+          <section aria-labelledby="culture" className="card" style={{ marginTop: 24, padding: 'clamp(20px, 4vw, 32px)' }}>
+            <h2 id="culture" style={{ fontSize: 36 }}>Their cultural profile</h2>
+            <dl style={{ margin: '16px 0 0', display: 'grid', gap: 10, gridTemplateColumns: 'max-content 1fr', columnGap: 20 }}>
+              {s.culture.scenes.length > 0 && <div style={{ display: 'contents' }}><dt className="label">Music</dt><dd style={{ margin: 0 }}>{s.culture.scenes.join(', ')}</dd></div>}
+              {s.culture.influences.length > 0 && <div style={{ display: 'contents' }}><dt className="label">Shaped by</dt><dd style={{ margin: 0 }}>{s.culture.influences.join(', ')}</dd></div>}
+              {s.culture.origins.length > 0 && <div style={{ display: 'contents' }}><dt className="label">From</dt><dd style={{ margin: 0 }}>{s.culture.origins.join(', ')}</dd></div>}
+              {s.culture.fans.length > 0 && <div style={{ display: 'contents' }}><dt className="label">Listeners</dt><dd style={{ margin: 0 }}>{s.culture.fans.join(', ').toLowerCase()}</dd></div>}
+            </dl>
+            <p className="hint" style={{ marginTop: 16 }}>Read by Qloo's taste graph from the artists you named. Nothing about heritage was asked.</p>
+          </section>)}
+
         <h2 style={{ marginTop: 56, fontSize: 36 }}>Their years, {s.born + 10} to {s.born + 30}</h2>
         <div className="card" style={{ marginTop: 16, padding: '24px 12px 12px' }}><BookTimeline born={s.born} items={ordered} /></div>
 

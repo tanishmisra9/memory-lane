@@ -1,7 +1,7 @@
 import type { Item } from '../../../src/engine';
 export type { Item };
 export type Step = { text: string; kept?: number; dropped?: number };
-export type SessionView = { id: string; version: number; name?: string; born: number; plan: Item[]; prompts: string[]; trace: Step[]; unresolved: string[]; avoid: { title: string; by?: string }[] };
+export type SessionView = { id: string; version: number; name?: string; born: number; plan: Item[]; prompts: string[]; trace: Step[]; unresolved: string[]; avoid: { title: string; by?: string }[]; culture?: { scenes: string[]; influences: string[]; origins: string[]; fans: string[] } };
 export type Reaction = 'smiled' | 'neutral' | 'upset';
 export type ArtistHit = { id: string; name: string; image?: string };
 export type Shelf = Record<string, { label: string; born: [number, number]; artists: string[] }>;
