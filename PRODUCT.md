@@ -16,7 +16,7 @@ Memory Lane builds a short reminiscence session from the years someone was young
 
 - An activity planner for caregivers. It is not therapy and gives no medical advice.
 - No health data is asked or stored. Only a birth year, one to three artists, and an optional first name.
-- No language model decides anything. Qloo finds candidates; plain code decides what is safe to play.
+- An LLM agent chooses, but only from what Qloo returned, and plain code decides what is safe to play. It can never name an item Qloo did not return.
 - A Qloo failure is shown as a failure. It never falls back to a generic list.
 - Reactions apply only to the person in that session and can be deleted.
 
