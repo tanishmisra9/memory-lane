@@ -41,8 +41,9 @@ export function Setup() {
   if (phase !== 'ask') return <Tuning phase={phase} steps={steps} error={error} onRetry={() => last.current && run(last.current)} onBack={() => { setPhase('ask'); setStep(2); }} />;
   const titles = ['Who is it for?', 'When were they born?', 'Which artists did they love?'];
   return (
-    <main id="app-main" className="wrap" style={{ paddingTop: 24, paddingBottom: 80, maxWidth: 760 }}>
-      <p className="label" aria-live="polite">Step {step + 1} of 3</p>
+    <main id="app-main" className="wrap" style={{ paddingTop: 24, paddingBottom: 80 }}>
+      <div className="col" style={{ maxWidth: 760 }}>
+      <p className="hint" aria-live="polite" aria-label={`Step ${step + 1} of 3`}>{step + 1}/3</p>
       <AnimatePresence mode="wait" initial={false}>
         <m.form key={step} onSubmit={next} noValidate initial={reduce ? false : { opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? undefined : { opacity: 0, x: -40 }} transition={spring} style={{ marginTop: 16 }}>
           <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }} tabIndex={-1} ref={el => el?.focus({ preventScroll: true })}>{titles[step]}</h1>
@@ -56,6 +57,7 @@ export function Setup() {
           </div>
         </m.form>
       </AnimatePresence>
+      </div>
     </main>
   );
 }
@@ -138,7 +140,8 @@ function ArtistsStep({ anchors, onChange, born }: { anchors: string[]; onChange:
 function Tuning({ phase, steps, error, onRetry, onBack }: { phase: Phase; steps: Step[]; error: string; onRetry: () => void; onBack: () => void }) {
   const reduce = useReducedMotion(), current = steps[steps.length - 1];
   return (
-    <main id="app-main" className="wrap" style={{ paddingTop: 48, paddingBottom: 80, maxWidth: 900, minHeight: '70dvh' }}>
+    <main id="app-main" className="wrap" style={{ paddingTop: 48, paddingBottom: 80, minHeight: '70dvh' }}>
+      <div className="col" style={{ maxWidth: 900 }}>
       <p className="label">{phase === 'failed' ? 'Something stopped' : 'Looking through Qloo'}</p>
       {phase === 'failed' ? (
         <div style={{ marginTop: 16 }}>
@@ -159,6 +162,7 @@ function Tuning({ phase, steps, error, onRetry, onBack }: { phase: Phase; steps:
             {steps.slice(0, -1).map((s, i) => <li key={i}>{s.text}</li>)}
           </ol>
         </div>)}
+      </div>
     </main>
   );
 }

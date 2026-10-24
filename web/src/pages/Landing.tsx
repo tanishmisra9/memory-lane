@@ -11,7 +11,7 @@ function Sweep() {
   const reduce = useReducedMotion(), ages = [13, 19, 24, 28], [i, setI] = useState(1);
   useEffect(() => { if (reduce) return; const t = setInterval(() => setI(n => (n + 1) % ages.length), 2200); return () => clearInterval(t); }, [reduce]);
   const age = ages[i] ?? 19;
-  return <EraTimeline born={DEMO_BORN} span={[age, age]} caption={`Born ${DEMO_BORN}. Their music is from ${DEMO_BORN + 10} to ${DEMO_BORN + 30}.`} />;
+  return <EraTimeline born={DEMO_BORN} span={[age, age]} flag={`Age ${age}, ${DEMO_BORN + age}`} caption={`Born ${DEMO_BORN}. Their music is from ${DEMO_BORN + 10} to ${DEMO_BORN + 30}.`} />;
 }
 
 export function Landing() {
@@ -41,11 +41,11 @@ export function Landing() {
             </div>
           </BlurFade>
         </div>
-        <BlurFade delay={0.25} className="card"><div style={{ padding: 'clamp(16px, 4vw, 32px)' }} aria-hidden="false"><Sweep /></div></BlurFade>
+        <BlurFade delay={0.25} className="card"><div style={{ padding: 'clamp(20px, 4vw, 36px)' }}><Sweep /></div></BlurFade>
       </section>
 
       <BlurFade as="section" className="">
-        <p style={{ marginTop: 56, maxWidth: '58ch' }}>
+        <p style={{ marginTop: 48, maxWidth: '58ch', textWrap: 'pretty' }}>
           A plain "popular music" list fits a person's youth 17% of the time, and 83% of its top picks carry an upsetting lyrical theme. Memory Lane builds from their own years, in their own culture, and screens every song.{' '}
           <a href="https://github.com/tanishmisra9/memory-lane/blob/master/docs/evaluation.md">How we measured it</a>.
         </p>

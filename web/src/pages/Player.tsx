@@ -102,16 +102,15 @@ export function Player() {
         ) : (
           <m.section key={item.id} aria-label={item.title} custom={dir.current}
             initial={reduce ? false : { opacity: 0, x: dir.current * 48 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? undefined : { opacity: 0, x: -dir.current * 48 }} transition={spring}
-            style={{ marginTop: 32, display: 'grid', gap: 32, gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', alignItems: 'start' }}>
-            <div style={{ display: 'grid', placeItems: 'center' }}><AlbumCard item={item} /></div>
-            <div style={{ display: 'grid', gap: 24 }}>
+            className="stage" style={{ marginTop: 24 }}>
+            <div className="stage-art"><AlbumCard item={item} playing={audio.playing} /></div>
+            <div className="stage-info">
               <div>
-                <span className={`code stock-${item.kind === 'song' ? 'red' : item.kind === 'film' ? 'cobalt' : 'green'}`} aria-hidden="true">{item.code}</span>
-                <h1 style={{ marginTop: 12, fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }}>{item.title}</h1>
+                <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }}>{item.title}</h1>
                 {item.by && <p style={{ marginTop: 8, font: '600 24px var(--font-body)' }}>{item.by}</p>}
                 <p className="hint" style={{ marginTop: 4 }}>{label(item, name)}</p>
               </div>
-              <EraTimeline born={session.born} span={span} />
+              <div className="p-timeline"><EraTimeline born={session.born} span={span} /></div>
               <Transport audio={audio} canPlay={!!item.previewUrl} onToggle={audio.toggle} onSeek={audio.seek} onPrev={() => go(index - 1)} onNext={() => go(index + 1)} hasPrev={index > 0} hasNext={!last} />
               <ReactionBar item={item} busy={busy} attention={audio.ended} onReact={doReact} onNote={doNote} onNext={advance} isLast={last} />
               {notice && <p className="hint" role="status">{notice}</p>}

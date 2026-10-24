@@ -15,7 +15,7 @@ const lines = (item: Item, born: number): { head: string; body: string }[] => {
   } else {
     out.push({ head: 'Where it came from', body: `Qloo returned this ${item.kind} near the artists, released ${item.year}, when they were ${item.age}. Of the in-window results, the most widely known was chosen.` });
   }
-  out.push({ head: 'Who decided', body: 'Qloo finds the candidates. Plain code, not a language model, decides what is safe to play.' });
+  out.push({ head: 'Who decided', body: 'Qloo finds the candidates. Plain, tested rules decide what is safe to play. No AI model makes that call.' });
   return out;
 };
 
@@ -38,7 +38,7 @@ export function WhyDrawer({ item, born, onClose }: { item: Item; born: number; o
   }, [onClose]);
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 70 }}>
-      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgb(0 0 0 / .45)' }} />
+      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgb(20 17 14 / .55)' }} />
       <m.div ref={ref} role="dialog" aria-modal="true" aria-labelledby="why-title" className="card" initial={reduce ? false : { x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={springFirm}
         style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 'min(440px, 100%)', overflow: 'auto', padding: 24, borderRight: 0, borderTop: 0, borderBottom: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12 }}>

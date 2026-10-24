@@ -86,9 +86,9 @@ try {
     await page.getByRole('link', { name: 'Open the Memory Book' }).click(); await page.getByRole('heading', { name: /Memory Book/ }).first().waitFor();
     await page.getByText('For family and care staff').waitFor();
     const book = await page.locator('main').innerText();
-    assert.match(book, /eleni's memory book/i); assert.match(book, /Danced to this at their wedding/); assert.match(book, /Worked:/); assert.match(book, /Avoid:.*upset Eleni/is);
+    assert.match(book, /eleni's memory book/i); assert.match(book, /Danced to this at their wedding/); assert.match(book, /Worked\s+Eleni smiled/i); assert.match(book, /Avoid\s+.*upset Eleni/is);
     assert.ok(await page.getByRole('button', { name: 'Print or save as PDF' }).count() === 1);
-    assert.ok(await page.locator('a[href^="https://open.spotify.com/search/"]').count() >= 4, `${name}: every song links onward`);
+    assert.ok(await page.locator('a[href^="https://open.spotify.com/search/"]').count() >= 4, `${name}: every song links onward, once, in Keep playing`);
     await guards(page, `${name} book`); if (shots) await page.screenshot({ path: `${shots}/${name}-book.png`, fullPage: true });
     step(`${name} memory book`);
 
