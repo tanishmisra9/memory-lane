@@ -41,7 +41,7 @@ export function Landing() {
             </div>
           </BlurFade>
         </div>
-        <BlurFade delay={0.25} className="card"><div style={{ padding: 'clamp(20px, 4vw, 36px)' }}><Sweep /></div></BlurFade>
+        <BlurFade delay={0.25} className="card hero-card"><div style={{ padding: 'clamp(20px, 4vw, 36px)' }}><Sweep /></div></BlurFade>
       </section>
 
       <BlurFade as="section" className="">

@@ -34,13 +34,13 @@ export function Book() {
   const hero = ordered.find(i => i.reaction === 'smiled') ?? ordered[0];
   return (
     <main id="app-main" className="wrap" style={{ paddingTop: 16, paddingBottom: 96 }}>
-      <div className="col">
+      <div>
         <BlurFade>
           <div style={{ display: 'flex', gap: 'clamp(16px, 4vw, 32px)', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            {hero && <Cover item={hero} size={120} />}
+            {hero && <Cover item={hero} size={168} />}
             <div style={{ minWidth: 0, flex: '1 1 320px' }}>
               <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }}>{owner} Memory Book</h1>
-              <p style={{ marginTop: 10, fontSize: 20 }}>Born {s.born}. Music, films and shows from {s.born + 10} to {s.born + 30}.</p>
+              <p style={{ marginTop: 10, fontSize: 20 }}>Born {s.born}. Music, films and shows from {s.born + 10} to {s.born + 30}, in the order of their years. Dashed cards have not been tried yet.</p>
             </div>
           </div>
         </BlurFade>
@@ -62,10 +62,10 @@ export function Book() {
         <h2 style={{ marginTop: 56, fontSize: 36 }}>Their years, {s.born + 10} to {s.born + 30}</h2>
         <div className="card" style={{ marginTop: 16, padding: '24px 12px 12px' }}><BookTimeline born={s.born} items={ordered} /></div>
 
-        <ol style={{ listStyle: 'none', margin: '24px 0 0', padding: 0, display: 'grid', gap: 16 }}>
+        <ol style={{ listStyle: 'none', margin: '24px 0 0', padding: 0, display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 420px), 1fr))' }}>
           {ordered.map((item, i) => (
             <BlurFade as="li" key={item.id} delay={Math.min(i, 6) * 0.04}>
-              <article className="card" style={{ padding: 'clamp(12px, 3vw, 20px)', display: 'flex', gap: 'clamp(12px, 3vw, 20px)', alignItems: 'flex-start' }}>
+              <article className="card" style={{ padding: 'clamp(12px, 3vw, 20px)', display: 'flex', gap: 'clamp(12px, 3vw, 20px)', alignItems: 'flex-start', height: '100%', borderStyle: item.reaction ? 'solid' : 'dashed' }}>
                 <Cover item={item} size={96} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
@@ -73,7 +73,7 @@ export function Book() {
                     {item.reaction && <p className="label" style={{ whiteSpace: 'nowrap' }}>{WORD[item.reaction]}</p>}
                   </div>
                   {item.by && <p style={{ fontWeight: 600 }}>{item.by}</p>}
-                  <p className="hint">{item.code}. {label(item, s.name)}</p>
+                  <p className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span className={`code stock-${item.kind === 'song' ? 'red' : item.kind === 'film' ? 'cobalt' : 'green'}`} style={{ minWidth: 30, height: 24, fontSize: 15 }}>{item.code}</span>{label(item, s.name)}</p>
                   {item.note && <blockquote style={{ margin: '10px 0 0', padding: '4px 14px', borderLeft: '1px solid var(--color-ink)', fontStyle: 'italic' }}>"{item.note}"</blockquote>}
                 </div>
               </article>
@@ -84,8 +84,8 @@ export function Book() {
         <section className="noprint" aria-labelledby="keep" style={{ marginTop: 48 }}>
           <h2 id="keep" style={{ fontSize: 36 }}>Keep playing</h2>
           <p className="hint" style={{ marginTop: 4 }}>Previews are 30 seconds. These open the full songs.</p>
-          <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gap: 4 }}>
-            {songs.map(item => <li key={item.id} style={{ minHeight: 44, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span style={{ fontWeight: 600 }}>{item.title}</span><span className="hint">{item.by}</span><a href={spotify(item)} target="_blank" rel="noreferrer">Spotify</a><a href={apple(item)} target="_blank" rel="noreferrer">Apple Music</a></li>)}
+          <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
+            {songs.map(item => <li key={item.id} style={{ padding: '6px 0', display: 'grid', gap: 2 }}><span><span style={{ fontWeight: 600 }}>{item.title}</span> <span className="hint">{item.by}</span></span><span style={{ display: 'flex', gap: 16 }}><a href={spotify(item)} target="_blank" rel="noreferrer" style={{ minHeight: 28 }}>Spotify</a><a href={apple(item)} target="_blank" rel="noreferrer" style={{ minHeight: 28 }}>Apple Music</a></span></li>)}
           </ul>
         </section>
 

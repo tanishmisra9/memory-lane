@@ -22,11 +22,11 @@ export function ReactionBar({ item, busy, attention, onReact, onNote, onNext, is
   return (
     <div>
       <p className="label" id="how">How did it land?</p>
-      <div role="group" aria-labelledby="how" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 8 }}>
+      <div role="group" aria-labelledby="how" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginTop: 8 }}>
         {OPTIONS.map((o, i) => (
           <m.button key={o.key} ref={i === 0 ? first : undefined} type="button" whileTap={{ scale: 0.97 }} disabled={busy} aria-pressed={item.reaction === o.key} onClick={() => onReact(o.key)}
-            className={`btn small ${item.reaction === o.key ? '' : 'quiet'}`} style={{ background: item.reaction === o.key ? 'var(--color-ink)' : undefined, color: item.reaction === o.key ? 'var(--color-bg)' : undefined, minHeight: 56 }}>
-            {o.label}<span className="kbd" aria-hidden="true" style={{ marginLeft: 4, color: 'inherit', opacity: .6 }}>{o.key2}</span>
+            className={`btn small ${item.reaction === o.key ? '' : 'quiet'}`} style={{ background: item.reaction === o.key ? 'var(--color-ink)' : undefined, color: item.reaction === o.key ? 'var(--color-bg)' : undefined, minHeight: 56, paddingInline: 8 }}>
+            {o.label}<span className="kbd keyhint" aria-hidden="true" style={{ marginLeft: 6, color: 'inherit', opacity: .6 }}>{o.key2}</span>
           </m.button>
         ))}
       </div>

@@ -38,7 +38,7 @@ export function WhyDrawer({ item, born, onClose }: { item: Item; born: number; o
   }, [onClose]);
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 70 }}>
-      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgb(20 17 14 / .55)' }} />
+      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgb(48 22 12 / .6)' }} />
       <m.div ref={ref} role="dialog" aria-modal="true" aria-labelledby="why-title" className="card" initial={reduce ? false : { x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={springFirm}
         style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 'min(440px, 100%)', overflow: 'auto', padding: 24, borderRight: 0, borderTop: 0, borderBottom: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 12 }}>
