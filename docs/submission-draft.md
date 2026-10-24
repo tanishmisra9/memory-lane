@@ -18,10 +18,11 @@ A search for "oldies" returns what was popular for everyone, in one country. A l
 
 ## What it does
 
-1. A caregiver enters a birth year and one to three artists the person loved (autocomplete from Qloo, or a starter shelf for 12 countries).
-2. An agent asks Qloo for artists near them, keeps only those active during ages 10 to 30 that are familiar and have gentle lyrical themes, re-anchors on what it found, and repeats until it has enough. Named artists are dated through iTunes, so their songs show an exact year and age.
-3. The page shows six songs with 30-second previews, two films or shows from the same years, and three conversation prompts built from the real titles.
-4. The caregiver taps Smiled, Okay or Upset on each item. Upset bans the artist and replaces the song; Smiled warms that genre. The session prints as a "what works" page for family or care staff, and can be deleted.
+1. **Landing:** one idea and one button. A moving era picture shows the thesis: a person born in 1946 is moved by music from 1956 to 1976.
+2. **Setup:** three short screens. A caregiver gives an optional first name, a birth year, and one to three artists the person loved (autocomplete from Qloo with artist photos, or a starter shelf for 12 countries).
+3. **Tuning:** the agent's real trace streams in live: what it asked Qloo, how many artists it kept and set aside, and when it went back for more. Nothing is simulated.
+4. **Player:** full screen, one song at a time. Cover art, an era timeline that places the song in their life, a 30-second preview, and Smiled / Okay / Upset with number-key shortcuts. Smiled and Okay open a one-line note ("What does this bring up?"). Upset replaces the song at once. A "Why this" drawer shows where the song came from, why it is from their youth, and what was checked.
+5. **Memory Book (what comes out):** a page for family and care staff that says what worked, what is neutral, what to avoid and what was not tried; every song, film and show on one timeline of their years (points for dated songs, bars for artists known only by active years); the words the caregiver wrote; and links to keep playing in Spotify or Apple Music. Print it, share the link, or delete it.
 
 ## How Qloo is used, and what breaks without it
 
@@ -37,6 +38,7 @@ Eight personas, three arms (full table in `docs/evaluation.md`). A generic popul
 
 ## Challenges
 
+- The first web version scrolled like a static page and nothing came out of it. We rebuilt it as separate pages with a full-screen player and a Memory Book, and added a live trace so the wait shows the work.
 - A `null` end year became 0, so every active artist looked retired. A unit test caught it.
 - Qloo's search results carry no era fields, so the first build dropped Frank Sinatra as "not active". Named artists are now dated through iTunes.
 - The agent's third round repeated its second query until it re-anchored on artists it had not used.
@@ -48,8 +50,8 @@ Eight personas, three arms (full table in `docs/evaluation.md`). A generic popul
 | Criterion | How Memory Lane answers it |
 | --- | --- |
 | Technological implementation | Qloo Search, Insights across artists, movies and TV, release-year window, explainability for "found through", a re-anchoring agent loop, a deterministic safety engine, 19 tests, a real-browser test, a three-arm evaluation |
-| Design | A jukebox title-strip wall, one idea per screen, 44px targets, AA contrast, no pills, mobile first |
-| Potential impact | Family caregivers of the 55 million-plus people with dementia; free, no login, prints a summary for care staff |
+| Design | Paper-and-ink system with hard offset shadows, separate landing, setup, player and book pages, one idea per screen, 44px targets, AA contrast, no pills, light and night themes, mobile first |
+| Potential impact | Family caregivers of the 55 million-plus people with dementia; free, no login; the Memory Book gives care staff a page they rarely get (what works and what to avoid) |
 | Quality of the idea | Cultural intelligence where a generic model fails: era-anchored, culture-aware, safety-screened reminiscence |
 
 ## Honest limits

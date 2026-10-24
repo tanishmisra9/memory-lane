@@ -2,7 +2,7 @@
 
 | Requirement | Evidence |
 | --- | --- |
-| Functional demo, no login | https://memory-lane.encore-tanishmisra9.workers.dev, one tap on an example loads a live Qloo session |
+| Functional demo, no login | https://memory-lane.encore-tanishmisra9.workers.dev, "Greece, 1947" on the landing page loads a live Qloo session in one tap |
 | Public repo with visible license | https://github.com/tanishmisra9/memory-lane, MIT |
 | Description | `docs/submission-draft.md` |
 | Hosted, not local | Cloudflare Worker with D1 |
@@ -15,3 +15,10 @@
 - Every number in the write-up comes from `npm run eval`, `npm test`, or the browser test.
 - Qloo data stays out of the repo: docs name no Qloo results, and the cache lives in D1.
 - The key is in `.dev.vars` (ignored) and a Cloudflare secret, never in the tree or history.
+
+## Front end (v2)
+
+- Pages: `/` landing, `/app` setup and live trace, `/app/:id` full-screen player, `/book/:id` Memory Book, `/privacy`.
+- The live trace is the real agent output, streamed as newline-delimited JSON from the Worker.
+- `npm run e2e` covers the whole flow in real Chrome at 1280 and 390 wide against production.
+- The Impeccable detector (full mode) reports 0 findings on `web/`.
