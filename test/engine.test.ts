@@ -125,3 +125,13 @@ test('books, places and meals get their own codes, and only dated kinds are held
   assert.deepEqual(plan.filter(i => i.kind !== 'song').map(i => [i.code, i.title, !!i.timeless]), [['B1', 'Film', false], ['C1', 'Book', false], ['D1', 'Athens', true], ['E1', 'Taverna', true]]);
   assert.deepEqual(plan.filter(i => i.timeless).map(i => [i.year, i.age]), [[0, 0], [0, 0]]);
 });
+
+test('books, films and shows about violence, war or tragedy are screened out, and gentle ones pass', async () => {
+  const { mediaSafe } = await import('../src/engine');
+  assert.equal(mediaSafe({ title: "The Michigan Murders: The True Story of the Ypsilanti Ripper's Reign of Terror" }), false);
+  assert.equal(mediaSafe({ title: 'Holocaust!: The Shocking Story' }), false);
+  assert.equal(mediaSafe({ title: 'A Quiet Film', tags: ['War drama'] }), false, 'a genre tag is enough');
+  assert.equal(mediaSafe({ title: 'The Bus', tags: ['Comedy', 'Greek'] }), true);
+  assert.equal(mediaSafe({ title: 'Anand' }), true);
+  assert.equal(mediaSafe({ title: 'Warm Hearts' }), true, 'whole words only: "Warm" is not "war"');
+});

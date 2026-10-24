@@ -32,29 +32,36 @@ Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/). It started as
 
 ```mermaid
 flowchart LR
-  I[Birth year and artists they loved] --> R[Qloo Search: resolve names]
-  R --> D[iTunes: dated songs for the named artists]
-  D --> A[Agent loop, up to 3 rounds]
-  A -->|Qloo Insights from the anchors| Q[Qloo taste graph]
-  Q --> F{Era, familiarity, gentle themes}
-  F -->|too few kept| A
-  F -->|enough| P[Session: 6 songs, 2 films or shows]
-  P --> X[Caregiver taps Smiled, Okay, Upset]
-  X -->|ban artist, shift genre weights| P
+  I[Birth year, artists they loved, optional city] --> G[Code: Qloo evidence across domains]
+  G --> M[Music: Search, Insights, explainability, 3 hops]
+  G --> S[Film, TV, books: Insights, release-year window]
+  G --> P[Places to revisit: destinations]
+  G --> D[Dining: cuisine tag plus city]
+  M --> E[Evidence: scenes, influences, origins, closest-to shares]
+  S --> E
+  P --> E
+  D --> E
+  E --> A[Agent: an LLM chooses, from this evidence only]
+  A --> V{Code checks: their years, familiarity, gentle themes, real ids}
+  V -->|rejected| A
+  V -->|accepted| C[Time capsule]
+  C --> R[Caregiver reacts or tells the agent what to change]
+  R -->|re-plan with Qloo evidence| A
 ```
+
+Qloo is used across the whole brief: **Search** (exact-name guarded), **Insights** over artists, movies, TV, books, destinations and places, with **explainability** (how close each result sits to each named artist), **release- and publication-year filters**, **location and cuisine tags** for dining, and the culture carried in artist properties and tags (scenes, influences, origin, how listeners are described). Every call is checked against a per-type parameter allowlist, because Qloo silently ignores a parameter that does not apply.
+
+The agent (Workers AI, `gpt-oss-120b`) never invents anything: it sees only what Qloo returned, and `submit_plan` is rejected in code if a song is outside their years, unfamiliar, has upsetting lyrical themes, or if any id did not come from Qloo. Books, films and shows are screened for violence, war and tragedy too. If the model is unavailable, the closest Qloo result in each domain is used, and the Memory Book says so.
 
 | Decision | Owner | Guardrail |
 | --- | --- | --- |
-| Which artists, films and shows are near what they loved | Qloo Insights, Search | A Qloo failure is shown, never replaced by a generic list |
-| Which are from their youth (born +10 to +30) | Code | Unknown start year is excluded |
-| Which are familiar and gentle | Code | Obscure, complex, or upsetting lyrical themes are removed |
-| Whether a song can be played | iTunes preview match | Artist name must match; songs without audio are swapped out |
-| What to do after a reaction | Code | Upset bans the artist; weights stay within 0.25 to 2 |
-| Conversation prompts | Fixed templates | Filled from real titles; nothing is generated |
+| What is near what they loved, across cultures and domains | Qloo | A Qloo failure is shown, never replaced by a generic list |
+| Which of those to pick, and why | LLM agent | Only ids Qloo returned; rejected and retried otherwise |
+| Their years, familiarity, gentle themes, audio, duplicates | Code | Unknown start year is excluded; unsafe is never played |
+| What to do after a reaction or an instruction | Code + agent | Upset bans the artist; "tell the agent" re-plans from Qloo evidence |
+| Whether to go, what to eat, who to call | The caregiver | Nothing is booked or sent |
 
-No language model is involved anywhere. The agent loop queries Qloo, filters by era and safety in code, re-anchors on artists it has not used yet, and repeats until it has 15 safe artists or three rounds. The trace is under "How it chose" on the page.
-
-**Limits.** Qloo has no per-song data, so songs from found artists show the ages the artist was active, not a release year (named artists get exact years from iTunes). About 4% of songs lack a preview. Films and shows are weaker matches than music. It is not therapy and makes no medical claims.
+**Limits.** Qloo has no per-song data, so songs from found artists show the ages the artist was active (named artists get exact years from iTunes). Film and TV picks are better than book picks; destinations suit some cultures better than others. The agent runs on Cloudflare's Workers AI free allowance (10,000 neurons a day); past that the app falls back to the Qloo ranking and says so. It is not therapy and makes no medical claims.
 
 ## Run it
 

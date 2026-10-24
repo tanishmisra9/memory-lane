@@ -1,5 +1,5 @@
 import { closestTo, image, list, one, qlooGet, strings, type Cache, type Raw } from './qloo';
-import type { Culture, Media, MediaKind } from './engine';
+import { mediaSafe, type Culture, type Media, type MediaKind } from './engine';
 
 // Qloo silently ignores parameters that do not belong to an entity type, so every call is checked against an allowlist first.
 export type Domain = 'movie' | 'tv_show' | 'book' | 'destination' | 'place';
@@ -35,7 +35,9 @@ export async function explore(domain: Domain, o: { signals: string[]; names: Map
     const tags = [...new Set((raw.tags ?? []).map(t => t.name).filter((n): n is string => !!n))].slice(0, 6);
     const p = raw.properties || {};
     const blurb = domain === 'destination' ? (typeof p.short_description === 'string' ? p.short_description : typeof p.description === 'string' ? p.description : undefined) : domain === 'book' ? (typeof p.description === 'string' ? p.description : undefined) : undefined;
-    out.push({ id: raw.entity_id, title: raw.name, year: year ?? 0, kind, timeless: !year, image: image(p.image), blurb: blurb ? (blurb.length > 200 ? `${blurb.slice(0, 200).replace(/\s+\S*$/, '')}…` : blurb) : undefined, closest: closestTo(raw, o.names), names: strings([raw.name]), tags });
+    const blurbText = blurb ? (blurb.length > 200 ? `${blurb.slice(0, 200).replace(/\s+\S*$/, '')}…` : blurb) : undefined;
+    if (domain !== 'place' && !mediaSafe({ title: raw.name, blurb: typeof p.description === 'string' ? p.description.slice(0, 400) : blurb, tags })) continue;
+    out.push({ id: raw.entity_id, title: raw.name, year: year ?? 0, kind, timeless: !year, image: image(p.image), blurb: blurbText, closest: closestTo(raw, o.names), names: strings([raw.name]), tags });
   }
   return out;
 }

@@ -113,7 +113,7 @@ export function Player() {
                 <p className="hint" style={{ marginTop: 4 }}>{label(item, name)}</p>
                 {item.culture?.scene.length ? <p style={{ marginTop: 6, fontWeight: 600 }}>{item.culture.scene.join(' · ')}</p> : null}
               </div>
-              <div className="p-timeline"><EraTimeline born={session.born} span={span} /></div>
+              {item.timeless ? (item.culture?.closest.length ? <p className="p-timeline hint">Qloo places this closest to {item.culture.closest.map(c => `${c.name} ${c.pct}%`).join(", ")}.</p> : null) : <div className="p-timeline"><EraTimeline born={session.born} span={span} /></div>}
               {item.blurb && <p style={{ maxWidth: '52ch' }}>{item.blurb}</p>}
               {item.kind === 'song' && <Transport audio={audio} canPlay={!!item.previewUrl} onToggle={audio.toggle} onSeek={audio.seek} onPrev={() => go(index - 1)} onNext={() => go(index + 1)} hasPrev={index > 0} hasNext={!last} />}
               {item.kind !== 'song' && <div style={{ display: 'flex', gap: 12 }}><button type="button" className="btn quiet small" onClick={() => go(index - 1)} disabled={index === 0}>Previous</button><button type="button" className="btn quiet small" onClick={() => go(index + 1)} disabled={last}>Next</button></div>}
