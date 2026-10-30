@@ -15,7 +15,7 @@ export const MIN_BORN = 1920, MAX_BORN = 1975, MAX_OBSCURITY = 3, MAX_COMPLEXITY
 // Themes that can distress; matched as whole words in Qloo's lyrical_themes.
 const UPSETTING = /\b(death|dying|grief|loss|heartbreak|heartache|drinking|alcohol|violence|war|despair|suicide|sorrow|loneliness)\b/i;
 // The same care for what is not a song: a book, film or show whose title, genre tags or blurb name violence, war or tragedy is not offered to someone with dementia.
-const UPSETTING_MEDIA = /\b(murder\w*|killer\w*|ripper|holocaust|genocide|massacre|terror\w*|horror|war|wars|true crime|serial|abuse|suicide|assassinat\w*|disaster|tragedy|death|dying|cancer|torture|rape|slave\w*|apocalyp\w*)\b/i;
+const UPSETTING_MEDIA = /\b(murder\w*|killer\w*|ripper|holocaust|genocide|massacre|terror\w*|horror|war|wars|true crime|serial|abuse|suicide|assassinat\w*|disaster|tragedy|death|dying|cancer|torture|rape|slave\w*|apocalyp\w*|prostitut\w*|brothel\w*|porn\w*|erotic\w*)\b/i;
 export const mediaSafe = (m: { title: string; blurb?: string; tags?: string[] }) => !UPSETTING_MEDIA.test(`${m.title} ${m.blurb ?? ''} ${(m.tags ?? []).join(' ')}`);
 const key = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 // "Bob Marley" and "Bob Marley & The Wailers" are one act, and a re-spelled title is the same song.

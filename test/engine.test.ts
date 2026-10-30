@@ -130,6 +130,7 @@ test('books, films and shows about violence, war or tragedy are screened out, an
   const { mediaSafe } = await import('../src/engine');
   assert.equal(mediaSafe({ title: "The Michigan Murders: The True Story of the Ypsilanti Ripper's Reign of Terror" }), false);
   assert.equal(mediaSafe({ title: 'Holocaust!: The Shocking Story' }), false);
+  assert.equal(mediaSafe({ title: 'My Prostitute Love' }), false, 'adult themes are not offered either');
   assert.equal(mediaSafe({ title: 'A Quiet Film', tags: ['War drama'] }), false, 'a genre tag is enough');
   assert.equal(mediaSafe({ title: 'The Bus', tags: ['Comedy', 'Greek'] }), true);
   assert.equal(mediaSafe({ title: 'Anand' }), true);
