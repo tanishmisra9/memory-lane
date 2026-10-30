@@ -29,6 +29,21 @@ Audio previews: 46 of 48 planned songs (96%).
 - **What the agent loop adds is depth.** It finds about 22% more safe in-era artists on average (21.4 against 17.6) and 7 against 5 in the worst persona. That matters for replacing upset songs without running out. It costs about 3 seconds on a cold start; repeat requests are cached and return in under a second.
 - **What this does not show.** There is no human judgment of whether the songs are the ones this person would love. The checks are era, familiarity, lyrical themes, and audio availability, all from Qloo and iTunes fields. A blind review by caregivers is the missing evidence and is not claimed.
 
+## A chatbot with no Qloo (2026-10-26)
+
+`scripts/baseline.mts`, four personas (Greece 1947, Mexico 1950, India 1948, US 1946), the same model (`gpt-oss-120b`) in both arms, six songs each, live Qloo. The chatbot arm is asked for six songs from the person's years given the two artists they loved, with no Qloo. The Qloo arm is the shipped agent. Aggregates only.
+
+| Metric (of 24 songs) | Chatbot, no Qloo | Memory Lane |
+| --- | --- | --- |
+| Songs by artists beyond the two named | 9 | 16 |
+| Artists that are real | 23 | 24 |
+| Song found in iTunes inside their years (title match, noisy) | 5 to 7 (two runs) | 9 |
+
+- **Where Qloo clearly differs:** breadth. The chatbot mostly repeats the artists it was given (India: 0 of 6 beyond the two named). Qloo returns the surrounding scene, and each pick carries Qloo's explainability.
+- **Where it does not:** a modern model does not invent famous artists, so "artists are real" is a tie. The card in the demo video says so.
+- **Weak metric, not used in the demo:** "inside their years" matches song titles against iTunes, so it undercounts both arms and the gap is small. Era and safety are enforced by code in the Memory Lane arm; the chatbot arm has no such check.
+- **Run to run:** the chatbot arm is not deterministic (artists real was 23 of 24 both times; years 5 then 7 of 24).
+
 ## Misses and caveats
 
 - Lyrical themes and obscurity come from Qloo and are missing for some artists. Those pass the filter and are labelled "themes unknown" in the plan notes.

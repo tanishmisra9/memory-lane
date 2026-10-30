@@ -29,4 +29,4 @@
 - The agent chooses only ids Qloo returned; `submit_plan` is validated in code (their years, familiarity, themes, real ids) and retried.
 - Books, films and shows are screened for violence, war and tragedy.
 - Free Workers AI allowance is 10,000 neurons a day. When it is spent the app falls back to Qloo's closest-result ranking and the Memory Book says the agent was not used.
-- Not yet measured: the Qloo-grounded agent against an LLM-only baseline (`scripts/baseline.mts`), because the day's allowance was used up while building.
+- Measured 2026-10-26: the Qloo-grounded agent against an LLM-only baseline (`scripts/baseline.mts`, results in `docs/evaluation.md`). Qloo's clear gain is breadth (16 of 24 songs beyond the two named artists, against 9 of 24); artists being real is a tie.

@@ -34,7 +34,7 @@ for (const p of personas) {
   for (const [arm, songs] of [['qloo-grounded agent', grounded.songs], ['llm only', plain.songs]] as const) {
     const exist = await Promise.all(songs.map(s => real(s.artist))), dated = await Promise.all(songs.map(s => inYears(s.artist, s.title, p.born)));
     const cultural = songs.filter(s => p.culture.test(`${(s as { scene?: string[] }).scene?.join(' ') ?? ''} ${(s as { origin?: string }).origin ?? ''} ${s.artist}`)).length;
-    rows.push(JSON.stringify({ persona: p.name, arm, songs: songs.length, artistExists: `${exist.filter(Boolean).length}/${songs.length}`, songDatedInTheirYears: `${dated.filter(Boolean).length}/${songs.length}`, culturalMarkers: arm === 'llm only' ? 'n/a' : `${cultural}/${songs.length}` }));
+    const beyond = songs.filter(x => !p.anchors.some(n => norm(n) === norm(x.artist))).length; rows.push(JSON.stringify({ persona: p.name, arm, songs: songs.length, beyondNamed: `${beyond}/${songs.length}`, artistExists: `${exist.filter(Boolean).length}/${songs.length}`, songDatedInTheirYears: `${dated.filter(Boolean).length}/${songs.length}`, culturalMarkers: arm === 'llm only' ? 'n/a' : `${cultural}/${songs.length}` }));
   }
 }
 console.log(rows.join('\n'));

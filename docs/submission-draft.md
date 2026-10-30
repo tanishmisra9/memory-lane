@@ -43,7 +43,7 @@ Qloo supplies the evidence. An LLM agent (Workers AI) chooses from it and explai
 
 ## Evaluation
 
-Eight personas, three arms (full table in `docs/evaluation.md`). A generic popular list fits the person's era 17% of the time, has upsetting themes in 83% of its top six, and is identical for every persona. Memory Lane's lists are era-fit and share nothing across personas. The agent loop finds about 22% more safe in-era artists than a single Qloo call (21.4 against 17.6 on average, 7 against 5 at the minimum). Audio previews exist for 96% of songs. Not shown: whether the songs are the right ones for a real person. That needs caregivers, and it is not claimed.
+Eight personas, three arms (full table in `docs/evaluation.md`). A generic popular list fits the person's era 17% of the time, has upsetting themes in 83% of its top six, and is identical for every persona. Memory Lane's lists are era-fit and share nothing across personas. The agent loop finds about 22% more safe in-era artists than a single Qloo call (21.4 against 17.6 on average, 7 against 5 at the minimum). Audio previews exist for 96% of songs. Against a chatbot with no Qloo (same model, four personas), 16 of 24 songs come from artists beyond the two the caregiver named, against 9 of 24; both name real artists (24 against 23 of 24). Not shown: whether the songs are the right ones for a real person. That needs caregivers, and it is not claimed.
 
 ## Challenges
 
@@ -54,11 +54,21 @@ Eight personas, three arms (full table in `docs/evaluation.md`). A generic popul
 - "Bob Marley" and "Bob Marley & The Wailers" both played "No Woman, No Cry" in one session.
 - The Discord version of this project (archived on `v1-discord`) needed a server, a bot invite and a location handoff. Judges could not try it, so we rebuilt it as a page.
 
+## What changed during the hackathon
+
+Memory Lane began on Oct 22, 2026 as a Discord group planner (archived on the [`v1-discord`](https://github.com/tanishmisra9/memory-lane/tree/v1-discord) branch). Judges could not try it without a server and a bot invite, so everything user-facing was rebuilt:
+
+- **Oct 23:** new product (reminiscence sessions for dementia caregivers), new engine, Qloo artist agent, hosted web app on Cloudflare Workers and D1.
+- **Oct 24:** full-screen player, Memory Book, live agent trace, cultural identity read from Qloo (scenes, influences, origin, closeness shares), and an LLM agent that chooses from Qloo evidence across music, film, TV, books, places and dining, with a "tell the agent" re-plan loop.
+- **Since:** the Qloo-versus-no-Qloo measurement and judge-day reliability work described in `docs/evaluation.md`.
+
+`git log` shows every commit.
+
 ## Qloo criteria
 
 | Criterion | How Memory Lane answers it |
 | --- | --- |
-| Technological implementation | Qloo Search, Insights across artists, movies and TV, release-year window, explainability for "found through", a re-anchoring agent loop, a deterministic safety engine, 19 tests, a real-browser test, a three-arm evaluation |
+| Technological implementation | Qloo Search, Insights across artists, movies and TV, release-year window, explainability for "found through", a re-anchoring agent loop, a deterministic safety engine, 32 tests, a real-browser test, a three-arm evaluation |
 | Design | Paper-and-ink system with hard offset shadows, separate landing, setup, player and book pages, one idea per screen, 44px targets, AA contrast, no pills, light and night themes, mobile first |
 | Potential impact | Family caregivers of the 55 million-plus people with dementia; free, no login; the Memory Book gives care staff a page they rarely get (what works and what to avoid) |
 | Quality of the idea | Cultural intelligence where a generic model fails: era-anchored, culture-aware, safety-screened reminiscence |

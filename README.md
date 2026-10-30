@@ -76,7 +76,7 @@ npm run web            # optional: Vite dev server on :5173, proxying /api to :8
 
 ```sh
 npm run check          # TypeScript for the Worker and the web app
-npm test               # 27 unit tests, offline
+npm test               # 32 unit tests, offline
 npm run e2e            # the whole product in real Chrome, desktop and mobile
 npm run eval           # three-arm evaluation on eight personas (live Qloo)
 ```
