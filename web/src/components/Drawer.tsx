@@ -5,12 +5,13 @@ import { springFirm } from '../lib/motion';
 
 // A dialog that traps focus, locks the page behind it (inert), and closes on Escape: the Portfolio's overlay pattern.
 export function Drawer({ title, onClose, children, id }: { title: string; onClose: () => void; children: ReactNode; id: string }) {
-  const reduce = useReducedMotion(), ref = useRef<HTMLDivElement>(null), opener = useRef<Element | null>(document.activeElement);
+  const reduce = useReducedMotion(), ref = useRef<HTMLDivElement>(null), opener = useRef<Element | null>(document.activeElement), close = useRef(onClose);
+  close.current = onClose; // callers pass a new function every render; depending on it re-ran the effect and pulled focus off the field while audio ticked
   useEffect(() => {
     const main = document.getElementById('app-main'); main?.setAttribute('inert', '');
     ref.current?.querySelector<HTMLElement>('button, textarea, input')?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+      if (e.key === 'Escape') { e.stopPropagation(); close.current(); }
       if (e.key === 'Tab' && ref.current) {
         const f = [...ref.current.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], textarea, input')]; if (!f.length) return;
         const first = f[0]!, last = f[f.length - 1]!;
@@ -19,7 +20,7 @@ export function Drawer({ title, onClose, children, id }: { title: string; onClos
     };
     window.addEventListener('keydown', onKey, true);
     return () => { window.removeEventListener('keydown', onKey, true); main?.removeAttribute('inert'); (opener.current as HTMLElement | null)?.focus?.(); };
-  }, [onClose]);
+  }, []);
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 70 }}>
       <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgb(48 22 12 / .6)' }} />

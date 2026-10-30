@@ -9,6 +9,9 @@ import type { ArtistHit, BuildInput, Shelf, Step } from '../lib/types';
 const MIN = 1920, MAX = 1975;
 type Phase = 'ask' | 'tuning' | 'failed';
 
+// A stable ref: an inline one re-runs on every keystroke and steals focus from the input.
+const focusOnMount = (el: HTMLElement | null) => el?.focus({ preventScroll: true });
+
 export function Setup() {
   const navigate = useNavigate(), [params] = useSearchParams(), reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>('ask'), [step, setStep] = useState(0);
@@ -47,7 +50,7 @@ export function Setup() {
       <p className="hint" aria-live="polite" aria-label={`Step ${step + 1} of 3`}>{step + 1}/3</p>
       <AnimatePresence mode="wait" initial={false}>
         <m.form key={step} onSubmit={next} noValidate initial={reduce ? false : { opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? undefined : { opacity: 0, x: -40 }} transition={spring} style={{ marginTop: 16 }}>
-          <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }} tabIndex={-1} ref={el => el?.focus({ preventScroll: true })}>{titles[step]}</h1>
+          <h1 style={{ fontSize: 'clamp(40px, 8vw, 72px)', lineHeight: .95 }} tabIndex={-1} ref={focusOnMount}>{titles[step]}</h1>
           {step === 0 && <NameStep value={name} onChange={setName} />}
           {step === 1 && <BornStep value={born} onChange={setBorn} valid={bornValid} />}
           {step === 2 && <ArtistsStep anchors={anchors} onChange={setAnchors} born={bornValid ? bornNumber : undefined} city={city} onCity={setCity} />}
