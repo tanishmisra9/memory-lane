@@ -3,7 +3,7 @@ import { createWorkersAI } from 'workers-ai-provider';
 import { z } from 'zod';
 import { eraWindow, inWindow, safety, type Artist, type CulturalProfile, type Media, type Pool } from './engine';
 import { explore, findTags, type Candidate } from './domains';
-import { runAgent, type Cache, type Step } from './qloo';
+import { norm, runAgent, type Cache, type Step } from './qloo';
 
 export type CapsuleInput = { born: number; name?: string; anchors: string[]; city?: string; message?: string; banned?: string[]; loved?: string[]; avoid?: string[] };
 export type CapsuleResult = { anchors: { id: string; name: string }[]; unresolved: string[]; pool: Pool; trace: Step[]; why?: string; agent: 'llm' | 'scripted' };
@@ -69,7 +69,10 @@ EVIDENCE: ${evidence}`;
     submit_plan: tool({
       description: 'Submit the final plan using ids from the evidence.',
       inputSchema: z.object({ songs: z.array(z.string()).min(4).max(6), film: z.string().optional(), show: z.string().optional(), book: z.string().optional(), destination: z.string().optional(), dining: z.string().optional(), why: z.string().max(700) }),
-      execute: async plan => {
+      execute: async raw => {
+        // The model sometimes writes a name where the tool wants an id. An exact name match still resolves to something Qloo returned, so accept it.
+        const resolve = (rows: { id: string; title?: string; name?: string }[], v?: string) => v === undefined ? v : (rows.find(r => r.id === v) ?? rows.find(r => norm(r.title ?? r.name ?? '') === norm(v)))?.id ?? v;
+        const plan = { ...raw, songs: raw.songs.map(v => resolve(ev.artists, v)!), film: resolve(ev.cands.film, raw.film), show: resolve(ev.cands.show, raw.show), book: resolve(ev.cands.book, raw.book), destination: resolve(ev.cands.place, raw.destination), dining: resolve(ev.cands.meal, raw.dining) };
         const bad = plan.songs.filter(id => { const a = artists.get(id); return !a || !allowed(a); });
         if (bad.length) return { error: `Not allowed (unknown, outside their years, or not safe): ${bad.join(', ')}. Choose ids from "artists".` };
         if (new Set(plan.songs).size !== plan.songs.length) return { error: 'Song ids must be distinct.' };
@@ -81,7 +84,9 @@ EVIDENCE: ${evidence}`;
   // The same question gets the same answer: reuse a stored decision instead of spending model time and the free daily allowance again.
   const memoKey = `agentplan2:${JSON.stringify([input.born, [...input.anchors].map(a => a.toLowerCase()).sort(), input.city?.toLowerCase(), input.message, input.banned, input.loved, input.avoid])}`;
   const memo = await cache?.get(memoKey) as typeof submitted | null | undefined;
-  if (memo && memo.songs.every(id => artists.has(id))) { submitted = memo; announce({ text: 'The agent had already answered this exact question; reusing it.' }); }
+  let reused = false;
+  // A stored answer that names something since screened out of the evidence is stale: plan again.
+  if (memo && memo.songs.every(id => artists.has(id)) && ok(ev.cands.film, memo.film) && ok(ev.cands.show, memo.show) && ok(ev.cands.book, memo.book) && ok(ev.cands.place, memo.destination) && ok(ev.cands.meal, memo.dining)) { submitted = memo; reused = true; announce({ text: 'The agent had already answered this exact question; reusing it.' }); }
   else announce({ text: 'The agent is reading what Qloo returned and choosing.' });
   const model = createWorkersAI({ binding: env.AI })(MODEL);
   for (let attempt = 0; attempt < 2 && !submitted; attempt++) {
@@ -89,7 +94,7 @@ EVIDENCE: ${evidence}`;
     console.log('agent attempt', attempt, `${Date.now() - t0}ms`, 'steps', r.steps.length, 'finish', r.finishReason, 'tools', r.steps.flatMap(st => st.toolResults.map(x => JSON.stringify(x.output).slice(0, 120))).join(' | '));
   }
   if (!submitted) throw new Error('The agent did not submit a plan.');
-  if (!memo) await cache?.set(memoKey, submitted, 7 * 24 * 3600_000);
+  if (!reused) await cache?.set(memoKey, submitted, 30 * 24 * 3600_000);
   const pick = [submitted.film && ev.cands.film.find(r => r.id === submitted!.film), submitted.show && ev.cands.show.find(r => r.id === submitted!.show), submitted.book && ev.cands.book.find(r => r.id === submitted!.book), submitted.destination && ev.cands.place.find(r => r.id === submitted!.destination), submitted.dining && ev.cands.meal.find(r => r.id === submitted!.dining)].filter((c): c is Candidate => !!c);
   announce({ text: 'The agent made its choices. Every one is checked against the rules in code.' });
   return { anchors: ev.anchors, unresolved: ev.unresolved, pool: asPool(ev, submitted.songs, pick), trace: ev.trace, why: submitted.why, agent: 'llm' };
