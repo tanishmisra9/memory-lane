@@ -30,7 +30,7 @@ export function App() {
           </Routes>
         </Suspense>
         <footer className="wrap noprint" style={{ paddingTop: 24, paddingBottom: 32, color: 'var(--color-muted)', fontSize: 15, borderTop: '1px solid var(--color-line)' }}>
-          An activity planner for family caregivers, not therapy or medical advice. Music and films found with Qloo. <Link to="/privacy" style={{ color: 'inherit' }}>Privacy</Link> · <a href="https://github.com/tanishmisra9/memory-lane" style={{ color: 'inherit' }}>Source</a>
+          An activity planner for family caregivers, not therapy or medical advice. Music and films found with Qloo, which describes what groups tend to like. You know the person. <Link to="/privacy" style={{ color: 'inherit' }}>Privacy</Link> · <a href="https://github.com/tanishmisra9/memory-lane" style={{ color: 'inherit' }}>Source</a>
         </footer>
       </LazyMotion>
     </BrowserRouter>

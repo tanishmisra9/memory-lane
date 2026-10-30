@@ -29,7 +29,7 @@ A search for "oldies" returns what was popular for everyone, in one country. A l
 
 Memory Lane never asks about ethnicity, language or heritage. Qloo reads the person's cultural identity from the artists the caregiver names, and every screen shows that reading:
 
-- **Search** resolves the named artists, with an exact-name guard because Qloo's search is fuzzy.
+- **Search** resolves the named artists, with a name check because Qloo's search is fuzzy.
 - **Insights, with explainability** returns artists, films and shows near them across a culture Memory Lane has no list for. Each result carries Qloo's own breakdown of which named artist pulled it in ("closest to Nana Mouskouri 54%, Mikis Theodorakis 46%"), shown in the "Why this" drawer.
 - **Cultural properties** on each artist (genre scenes such as Laiko, Ranchera or Playback Singing; influences; place of origin; Qloo's cultural-impact summary; how its listeners are described) become a **cultural profile** of the person: streamed live while it builds ("Qloo reads their culture as Laiko, Greek Folk, Entehno, shaped by Greek Folk Traditions, Édith Piaf"), shown per song, and printed in the Memory Book for care staff.
 - **Release-year filtering across movies and TV**, ranked by Qloo's affinity, so a Greek listener's film is the one Qloo places closest to Greek artists, not the most famous title.
@@ -75,4 +75,4 @@ Memory Lane began on Oct 22, 2026 as a Discord group planner (archived on the [`
 
 ## Honest limits
 
-Not therapy and makes no medical claim. No per-song year for found artists, so it shows ages. Films and shows are weaker matches. No human review of the songs yet. Qloo's hackathon key is rate-limited; repeated lookups are cached on the server.
+Qloo describes what groups tend to like, not what one person will do, so the caregiver decides. Not therapy and makes no medical claim. No per-song year for found artists, so it shows ages. Films and shows are weaker matches. No human review of the songs yet. Qloo's hackathon key is rate-limited; repeated lookups are cached on the server.

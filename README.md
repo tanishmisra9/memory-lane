@@ -49,7 +49,20 @@ flowchart LR
   R -->|re-plan with Qloo evidence| A
 ```
 
-Qloo is used across the whole brief: **Search** (exact-name guarded), **Insights** over artists, movies, TV, books, destinations and places, with **explainability** (how close each result sits to each named artist), **release- and publication-year filters**, **location and cuisine tags** for dining, and the culture carried in artist properties and tags (scenes, influences, origin, how listeners are described). Every call is checked against a per-type parameter allowlist, because Qloo silently ignores a parameter that does not apply.
+Qloo is used across the whole brief: **Search** (name-checked), **Insights** over artists, movies, TV, books, destinations and places, with **explainability** (how close each result sits to each named artist), **release- and publication-year filters**, **location and cuisine tags** for dining, and the culture carried in artist properties and tags (scenes, influences, origin, how listeners are described). Every call is checked against a per-type parameter allowlist, because Qloo silently ignores a parameter that does not apply.
+
+### Request to result
+
+One session, as the Worker runs it. I call the Qloo API directly from the Worker, on the hackathon host, not through the harness or MCP. The key stays server-side.
+
+1. **Search** (`/search`, `types=urn:entity:artist`) resolves each artist the caregiver named. Search is fuzzy, so a result is accepted only when its name agrees with the one typed (equal, or one contains the other); otherwise the artist is reported as not found.
+2. **Insights over artists** (`/v2/insights`, `filter.type=urn:entity:artist`, `signal.interests.entities` = the named ids, `feature.explainability=true`) returns nearby artists with their active years, familiarity, lyrical themes, notable songs, and the scene, influences and origin that become the cultural profile. Artists that fit the person's years and pass the safety rules become the next signals, for up to three rounds.
+3. **Insights per domain**, using the named artists plus up to four found ones as signals. Films and TV take `filter.release_year` (birth year plus 10 to 30), books take `filter.publication_year`, destinations take signals only. Each call carries explainability, which gives the "closest to" shares shown in the Why drawer.
+4. **Dining** (only if a city is given): `/v2/tags` finds a cuisine tag from the culture Qloo returned (for example "Greek"), and Insights for `urn:entity:place` takes `filter.location.query` (the city) and `filter.tags` (that tag).
+5. Every call is checked against a per-type parameter allowlist (`src/domains.ts`), because Qloo silently ignores a parameter that does not apply.
+6. The agent then chooses only from those results, and code checks years, familiarity, themes and audio before anything plays.
+
+What Qloo receives: artist names, entity ids, year ranges, and the city if given. Never the first name or the notes.
 
 The agent (Workers AI, `gpt-oss-120b`) never invents anything: it sees only what Qloo returned, and `submit_plan` is rejected in code if a song is outside their years, unfamiliar, has upsetting lyrical themes, or if any id did not come from Qloo. Books, films and shows are screened for violence, war and tragedy too. If the model is unavailable, the closest Qloo result in each domain is used, and the Memory Book says so.
 
@@ -61,7 +74,7 @@ The agent (Workers AI, `gpt-oss-120b`) never invents anything: it sees only what
 | What to do after a reaction or an instruction | Code + agent | Upset bans the artist; "tell the agent" re-plans from Qloo evidence |
 | Whether to go, what to eat, who to call | The caregiver | Nothing is booked or sent |
 
-**Limits.** Qloo has no per-song data, so songs from found artists show the ages the artist was active (named artists get exact years from iTunes). Film and TV picks are better than book picks; destinations suit some cultures better than others. The agent runs on Cloudflare's Workers AI free allowance (10,000 neurons a day); past that the app falls back to the Qloo ranking and says so. It is not therapy and makes no medical claims.
+**Limits.** Qloo has no per-song data, so songs from found artists show the ages the artist was active (named artists get exact years from iTunes). Film and TV picks are better than book picks; destinations suit some cultures better than others. The agent runs on Cloudflare's Workers AI free allowance (10,000 neurons a day); past that the app falls back to the Qloo ranking and says so. Qloo describes what groups of people tend to like, not what one person will do, so the caregiver decides what to play. It is not therapy and makes no medical claims.
 
 ## Run it
 
@@ -87,7 +100,7 @@ Stack: a Cloudflare Worker (`src/`) with D1, and a Vite + React + framer-motion 
 
 ## Privacy
 
-A birth year, up to three artist names, an optional first name, and the one-line notes you choose to write. No health data, no accounts, no location. Sessions expire after 30 days and can be deleted from the Memory Book. Qloo responses are cached privately on the server and are not stored in this repository.
+A birth year, up to three artist names, an optional first name, an optional city (for a restaurant near them; a city name, never an address), and the one-line notes you choose to write. No health data, no accounts. Qloo receives the artist names, release-year ranges worked out from the birth year, and the city if given; it never receives the first name or notes. What you type in Tell the agent goes to the agent (Cloudflare Workers AI), not to Qloo. Sessions expire after 30 days and can be deleted from the Memory Book. Qloo responses are cached privately on the server and are not stored in this repository.
 
 ## License
 
