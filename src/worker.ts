@@ -1,7 +1,7 @@
 import { alternates, applyReaction, buildPlan, prompts, refill, validate, validateNote, type Item, type Pool, type Profile, type Reaction } from './engine';
 import { previewFor, searchArtists, type Cache, type Step } from './qloo';
 import { buildCapsule } from './capsule';
-import { SHELVES } from './shelves';
+import { PRESETS, SHELVES } from './shelves';
 
 type Env = { DB: D1Database; ASSETS: Fetcher; AI?: Ai; QLOO_API_KEY?: string };
 type Avoid = { title: string; by?: string };
@@ -46,10 +46,9 @@ async function playable(plan: Item[], pool: Pool, profile: Profile, cache: Cache
 }
 
 type Built = { session: Session } | { error: string; status: number };
-async function build(raw: unknown, env: Env, onStep?: (step: Step) => void): Promise<Built> {
+async function build(raw: unknown, env: Env, onStep?: (step: Step) => void, cache: Cache = dbCache(env.DB)): Promise<Built> {
   if (!env.QLOO_API_KEY) return { error: 'Qloo is not configured.', status: 503 };
   let input; try { input = validate(raw); } catch (error) { return { error: error instanceof Error ? error.message : 'Invalid request.', status: 400 }; }
-  const cache = dbCache(env.DB);
   let result; try { result = await buildCapsule(input, { AI: env.AI, QLOO_API_KEY: env.QLOO_API_KEY }, cache, onStep ?? (() => {})); } catch (error) { return { error: error instanceof Error ? error.message : 'Qloo failed.', status: 502 }; }
   const profile: Profile = { born: input.born, name: input.name, anchors: result.anchors, weights: {}, banned: [] };
   const { plan, profile: finalProfile } = await playable(buildPlan(result.pool, profile), result.pool, profile, cache);
@@ -177,5 +176,12 @@ export default {
   async scheduled(_event: ScheduledController, env: Env): Promise<void> {
     const now = Date.now();
     await env.DB.batch([env.DB.prepare('DELETE FROM sessions WHERE expires_at <= ?').bind(now), env.DB.prepare('DELETE FROM qloo_cache WHERE expires_at <= ?').bind(now)]);
+    // Judges open the landing-page presets for weeks: refetch their Qloo lookups every run (they expire after 24 hours) and keep the iTunes lookups. It runs without the model: warming must never spend the free AI allowance.
+    const db = dbCache(env.DB), fresh: Cache = { get: key => (key.startsWith('/') ? Promise.resolve(null) : db.get(key)), set: db.set };
+    for (const { label, ...preset } of Object.values(PRESETS)) {
+      const built = await build(preset, { ...env, AI: undefined }, undefined, fresh).catch(error => ({ error: String(error), status: 500 }));
+      if ('session' in built) await env.DB.prepare('DELETE FROM sessions WHERE id = ?').bind(built.session.id).run();
+      else console.error('warm failed', label, built.error);
+    }
   },
 } satisfies ExportedHandler<Env>;

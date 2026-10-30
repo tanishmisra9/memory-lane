@@ -162,7 +162,7 @@ export async function datedSongs(artist: string, from: number, to: number, cache
   const middle = (from + to) / 2;
   out.sort((a, b) => Math.abs(a.year - middle) - Math.abs(b.year - middle));
   const result = out.slice(0, 3);
-  if (result.length) await cache.set(id, result, 7 * 24 * 3600_000);
+  if (result.length) await cache.set(id, result, 30 * 24 * 3600_000);
   return result;
 }
 
@@ -171,11 +171,12 @@ export async function previewFor(song: string, artist: string, cache: Cache = me
   const id = `itunes2:${norm(song)}:${norm(artist)}`, hit = await cache.get(id);
   if (hit !== null) return hit === '' ? null : hit as { url: string; art?: string };
   const response = await fetch(`https://itunes.apple.com/search?${new URLSearchParams({ term: `${song} ${artist}`, media: 'music', entity: 'song', limit: '6' })}`).catch(() => null);
-  if (!response?.ok) return null;
+  if (!response?.ok) { console.warn('itunes preview lookup failed', response?.status ?? 'network', song, artist); return null; }
   const data = await response.json() as { results?: Array<{ previewUrl?: string; artistName?: string; artworkUrl100?: string }> };
   const lead = norm(artist).split(' ')[0];
   const match = data.results?.find(r => r.previewUrl && norm(r.artistName || '').includes(lead));
   const found = match?.previewUrl ? { url: match.previewUrl, art: bigArt(match.artworkUrl100) } : null;
-  await cache.set(id, found ?? '', 7 * 24 * 3600_000);
+  // A miss is remembered briefly: iTunes can answer a burst of lookups with an empty list, and a week-long miss would silence that song.
+  await cache.set(id, found ?? '', found ? 30 * 24 * 3600_000 : 15 * 60_000);
   return found;
 }
