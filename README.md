@@ -5,7 +5,6 @@
 <p align="center"><strong>The right song isn't the popular one. It's the one from when they were 19.</strong></p>
 
 <p align="center">
-  <a href="https://memory-lane.encore-tanishmisra9.workers.dev">Live demo</a> ·
   <a href="docs/evaluation.md">Evaluation</a> ·
   <a href="docs/submission-draft.md">Write-up</a>
 </p>
@@ -16,7 +15,7 @@
   <img src="https://img.shields.io/badge/powered%20by-Qloo-c62d26" alt="Powered by Qloo">
 </p>
 
-**Try it: https://memory-lane.encore-tanishmisra9.workers.dev** (no login; "Greece, 1947" on the landing page is a one-tap example).
+**The hosted demo was taken down on 7 November 2026**, after the Qloo Agentic Hackathon judging period ended. To run it yourself, see the Stack paragraph below (you need your own Qloo API key and a free Cloudflare account).
 
 Memory Lane helps a family caregiver run a short music-and-memories session with someone who has dementia, then keep what came of it.
 
@@ -94,7 +93,7 @@ npm run e2e            # the whole product in real Chrome, desktop and mobile
 npm run eval           # three-arm evaluation on eight personas (live Qloo)
 ```
 
-`BASE_URL=https://memory-lane.encore-tanishmisra9.workers.dev npm run e2e` runs the same test against production. It walks landing, setup, the live trace, the player (audio plays, the progress moves), keyboard control, the Why drawer, an Upset swap, a note, the finish screen, the Memory Book, reload, and delete. It also fails on any rounded shape above 8px, any control under 44px tall, sideways scrolling, or a console error. It uses installed Chrome when present so audio is real.
+`BASE_URL=<your deployed or local URL> npm run e2e` runs the same test against a running server. It walks landing, setup, the live trace, the player (audio plays, the progress moves), keyboard control, the Why drawer, an Upset swap, a note, the finish screen, the Memory Book, reload, and delete. It also fails on any rounded shape above 8px, any control under 44px tall, sideways scrolling, or a console error. It uses installed Chrome when present so audio is real.
 
 Stack: a Cloudflare Worker (`src/`) with D1, and a Vite + React + framer-motion front end (`web/`) served as static assets with `/api/*` going to the Worker first. Deploy with `npx wrangler d1 create memory-lane`, put the id in `wrangler.jsonc`, `npx wrangler d1 migrations apply memory-lane --remote`, `npx wrangler secret put QLOO_API_KEY`, `npm run build && npm run deploy`.
 

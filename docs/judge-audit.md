@@ -2,7 +2,7 @@
 
 | Requirement | Evidence |
 | --- | --- |
-| Functional demo, no login | https://memory-lane.encore-tanishmisra9.workers.dev, "Greece, 1947" on the landing page loads a live Qloo session in one tap |
+| Functional demo, no login | Was hosted on Cloudflare Workers during judging (a one-tap "Greece, 1947" example on the landing page loaded a live Qloo session). Taken down on 7 November 2026 after judging ended; see the README to run it yourself |
 | Public repo with visible license | https://github.com/tanishmisra9/memory-lane, MIT |
 | Description | `docs/submission-draft.md` |
 | Hosted, not local | Cloudflare Worker with D1 |
