@@ -1,4 +1,4 @@
-<p align="center"><img src="public/logo.svg" alt="Memory Lane logo" width="96"></p>
+<p align="center"><img src="web/public/logo.svg" alt="Memory Lane logo" width="96"></p>
 
 <h1 align="center">Memory Lane</h1>
 
